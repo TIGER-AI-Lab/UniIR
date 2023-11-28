@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+    <!-- Replace the content tag with appropriate information -->
+    <meta name="description" content="We introduce UniIR, a unified instruction-guided multimodal retriever capable of handling eight distinct retrieval tasks across modalities.">
+    <meta property="og:title" content="UniIR: Training and Benchmarking Universal Multimodal Information Retrievers" />
+    <meta property="og:description" content="We introduce UniIR, a unified instruction-guided multimodal retriever capable of handling eight distinct retrieval tasks across modalities." />
+    <meta property="og:url" content="https://tiger-ai-lab.github.io/UniIR/" />
+    <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+    <meta property="og:image" content="static/images/uniir_teaser.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+
+    <meta name="twitter:title" content="UniIR: Training and Benchmarking Universal Multimodal Information Retrievers">
+    <meta name="twitter:description" content="We introduce UniIR, a unified instruction-guided multimodal retriever capable of handling eight distinct retrieval tasks across modalities.">
+    <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+    <meta name="twitter:image" content="static/images/uniir_teaser.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- Keywords for your paper to be indexed by-->
+    <meta name="keywords" content="uniir">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <title>UniIR</title>
+    <link rel="icon" type="image/x-icon" href="static/images/uniir_icon.png">
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+    <link rel="stylesheet" href="static/css/bulma.min.css">
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="static/css/index.css">
+
+    <script src="static/js/jquery.min.js"></script>
+    <script src="static/js/main.js"></script>
+    <script defer src="static/js/fontawesome.all.min.js"></script>
+    <script src="static/js/bulma-carousel.min.js"></script>
+    <script src="static/js/bulma-slider.min.js"></script>
+    <script src="static/js/index.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="static/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="static/js/jquery-3.5.1.js"></script>
+    <script type="text/javascript" charset="utf8" src="static/js/jquery.dataTables.js"></script>
+</head>
+
+<body>
+
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h1 class="title is-1 publication-title">
+                            UniIR<img src="static/images/uniir_icon.png" width="5%" alt="UniIR Icon" />: Training and Benchmarking Universal Multimodal Information Retrievers
+                        </h1>
+                        <div class="is-size-5 publication-authors">
+                            <!-- Paper authors -->
+                            <span class="author-block">
+                                  <sup>♠️</sup><a href="https://scholar.google.com/citations?user=y1d5C5YAAAAJ&hl=en" target="_blank">Cong Wei</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♣</sup><a href="https://edchengg.github.io/" target="_blank">Yang Chen</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♠️</sup><a href="https://cs.uwaterloo.ca/~jimmylin/students.html" target="_blank">Haonan Chen</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♥</sup><a href="https://www.hexianghu.com/" target="_blank">Hexiang Hu</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♠️</sup><a href="https://scholar.google.com/citations?user=qyTrq4kAAAAJ&hl=zh-CN" target="_blank">Ge Zhang</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>†</sup><a href="https://bigaidream.github.io/" target="_blank">Jie Fu</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♣</sup><a href="https://aritter.github.io/" target="_blank">Alan Ritter</a>,
+                            </span>
+                            <span class="author-block">
+                                  <sup>♠️</sup><a href="https://wenhuchen.github.io/" target="_blank">Wenhu Chen</a>
+                            </span>
+                        </div>
+
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">
+                            <sup>♠️</sup>University of Waterloo,
+                            <sup>♣</sup>Georgia Institute of Technology,
+                            <sup>†</sup>Hong Kong University of Science and Technology,
+                            <sup>♥</sup>Google DeepMind,
+                            </span>
+                            <span class="author-block">
+                                <small>
+                                    cong.wei@uwaterloo.ca,
+                                    yangc@gatech.edu,
+                                    haonan.chen@uwaterloo.ca,
+                                    hexiang.frank.hu@gmail.com,
+                                    ge.zhang@uwaterloo.ca,
+                                    jiefu@ust.hk,
+                                    alan.ritter@cc.gatech.edu,
+                                    wenhuchen@uwaterloo.ca
+                                </small>
+                            </span>
+
+                        </div>
+
+                        <div class="column has-text-centered">
+                            <div class="publication-links">
+                                <span class="link-block">
+                                  <a href="https://huggingface.co/MBEIR" target="_blank"
+                                  class="external-link button is-normal is-rounded is-dark">
+                                      <span class="icon">
+                                        🤗
+                                      </span>
+                                      <span>Dataset(Coming Soon!)</span>
+                                  </a>
+                                </span>
+
+                                <span class="link-block">
+                                    <a href="https://huggingface.co/TIGER-Lab/MBEIR" target="_blank"
+                                    class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                          🤗
+                                        </span>
+                                        <span>Models(Coming Soon!)</span>
+                                    </a>
+                                </span>
+
+                                <!-- Github link -->
+                                <span class="link-block">
+                                  <a href="https://github.com/TIGER-AI-Lab/UniIR" target="_blank"
+                                  class="external-link button is-normal is-rounded is-dark">
+                                  <span class="icon">
+                                    <i class="fab fa-github"></i>
+                                  </span>
+                                      <span>Code(Coming Soon!)</span>
+                                  </a>
+                                </span>
+
+<!--                                <span class="link-block">-->
+<!--                                    <a href="index.html" target="_blank"-->
+<!--                                    class="external-link button is-normal is-rounded is-dark">-->
+<!--                                        <span>📘 Docs</span>-->
+<!--                                    </a>-->
+<!--                                </span>-->
+
+                                <!-- ArXiv abstract Link -->
+                                <span class="link-block">
+                                <a href="https://arxiv.org/abs/" target="_blank"
+                                  class="external-link button is-normal is-rounded is-dark">
+                                      <span class="icon">
+                                        <i class="ai ai-arxiv"></i>
+                                      </span>
+                                <span>arXiv</span>
+                                </a>
+                                </span>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image carousel -->
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="item">
+                            <!-- Your image here -->
+                            <img src="static/images/uniir_teaser.jpg" alt="UniIR" />
+                            <h2 class="subtitle">
+                                Figure 1: We build a universal multimodal information retriever UniIR through instruction tuning. UniIR is capable of accepting any form
+of query and instruction to retrieve information in any modality.
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End image carousel -->
+
+
+    <!-- Paper abstract -->
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h2 class="title is-3">Abstract</h2>
+                        <div class="content has-text-justified">
+                            <p>Existing information retrieval (IR) models often assume a homogeneous format, limiting their applicability to diverse user needs, such as searching for images with text descriptions, searching for a news article with a headline image, or finding a similar photo with a query image.
+To approach such different information-seeking demands, we introduce UniIR<img src="static/images/uniir_icon.png" width="2%" alt="UniIR Icon" />, a unified instruction-guided multimodal retriever capable of handling eight distinct retrieval tasks across modalities.
+UniIR, a single retrieval system jointly trained on ten diverse multimodal-IR datasets, interprets user instructions to execute various retrieval tasks, demonstrating robust performance across existing datasets and zero-shot generalization to new tasks.
+Our experiments highlight that multi-task training and instruction tuning are keys to UniIR's generalization ability.
+Additionally, we construct the M-BEIR, a multimodal retrieval benchmark with comprehensive results, to standardize the evaluation of universal multimodal information retrieval.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End paper abstract -->
+
+
+<!--    <section class="hero is-small">-->
+<!--        <div class="hero-body">-->
+<!--            <div class="container  is-max-desktop">-->
+<!--                <div class="columns is-centered has-text-centered">-->
+<!--                    <div class="column is-four-fifths">-->
+<!--                        <h2 class="title is-3">Overall Results</h2>-->
+<!--                        <div class="item">-->
+<!--                            &lt;!&ndash; Your image here &ndash;&gt;-->
+<!--                            <img src="static/images/overall_results.jpg" alt="MY ALT TEXT" />-->
+<!--                            <h2 class="subtitle has-text-centered">-->
+<!--                                Figure 2: The best and the average model performance in each task.-->
+<!--                            </h2>-->
+<!--                            <img src="static/images/task_performance.png" alt="MY ALT TEXT" />-->
+<!--                            <h2 class="subtitle has-text-centered">-->
+<!--                                Figure 3: Model performance and standard deviation in each task.-->
+<!--                            </h2>-->
+<!--                            <p>-->
+<!--                                -->
+<!--                            </p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </section>-->
+
+
+<!--    <section class="hero is-small">-->
+<!--        <div class="hero-body">-->
+<!--            <div class="container  is-max-desktop">-->
+<!--                <div class="columns is-centered has-text-centered">-->
+<!--                    <div class="column is-four-fifths">-->
+<!--                        <h2 class="title is-3">How images are rated?</h2>-->
+<!--                        <div class="item">-->
+<!--                            &lt;!&ndash; Your image here &ndash;&gt;-->
+<!--                            <img src="static/images/task_overview.jpg" alt="MY ALT TEXT" />-->
+<!--                            <h2 class="subtitle">-->
+<!--                                Figure 4: The visualization of all the conditional image generation tasks. Here we consider tasks-->
+<!--                                with 1-3 conditions, where ∅ means empty. The special token [V] and [M] are special identifiers.-->
+<!--                            </h2>-->
+<!--                            <p>-->
+<!--                                To standardize the conduction of a rigorous human evaluation, we stipulate the criteria for each measurement as follows:-->
+<!--                                        <ul style="list-style-type: disc;" class="has-text-left">-->
+<!--                                            <li>-->
+<!--                                                Semantic Consistency (SC), score in range [0, 0.5, 1]. It measures the level that the generated image is coherent in terms of the condition provided (i.e. Prompts, Subject Token, etc.).-->
+<!--                                            </li>-->
+<!--                                            <li>-->
+<!--                                                Perceptual Quality (PQ), score in range [0, 0.5, 1]. It measures the level at which the generated image is visually convincing and gives off a natural sense.-->
+<!--                                            </li>-->
+<!--                                            <li>-->
+<!--                                                Overall Human Score (O), equal to sqrt(SC x PQ).-->
+<!--                                            </li>-->
+<!--                                        </ul>-->
+<!--                            </p>-->
+<!--                            <img src="static/images/rating_guide.png" alt="MY ALT TEXT" />-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </section>-->
+
+
+
+
+
+
+<!--    <section class="hero">-->
+<!--        <div class="hero-body">-->
+<!--            <div class="container is-max-desktop">-->
+<!--                <div class="columns is-centered">-->
+<!--                    <div class="column has-text-centered is-fifths-fifths">-->
+<!--                        <h2 class="title is-3">Comprehensive Results</h2>-->
+<!--                        <div class="content has-text-justified">-->
+<!--                            <div class="buttonGroup">-->
+<!--                                <button value="ALL">All</button>-->
+<!--                                <button value="T2I">Text-Guided Image Generation</button>-->
+<!--                                <button value="MIE">Mask-guided Image Editing</button>-->
+<!--                                <button value="TIE">Text-guided Image Editing</button>-->
+<!--                                <button value="SDIG">Subject-driven Image Generation</button>-->
+<!--                                <button value="SDIE">Subject-driven Image Editing</button>-->
+<!--                                <button value="MCIC">Multi-concept Image Composition</button>-->
+<!--                                <button value="CIG">Control-guided Image Generation</button>-->
+<!--                            </div>-->
+<!--                            <table>-->
+<!--                                <thead>-->
+<!--                                    <tr>-->
+<!--                                        <th>Model</th>-->
+<!--                                        <th>SC<sub>Avg</sub></th>-->
+<!--                                        <th>PQ<sub>Avg</sub></th>-->
+<!--                                        <th>Overall(O)</th>-->
+<!--                                        <th>Fleiss<sub>Ō</sub></th>-->
+<!--                                        <th>Kd<sub>Ō</sub></th>-->
+<!--                                    </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody id="tabResults">-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="T2I" colspan="14" style="text-align: center; font-weight: bold;">Text-guided Image Generation Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DeepFloydIF</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.65±0.02</td>-->
+<!--                                        <td>0.62±0.06</td>-->
+<!--                                        <td><strong>0.59±0.02</strong></td>-->
+<!--                                        <td>0.32</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.51</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Stable Diffusion XL</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.62±0.03</td>-->
+<!--                                        <td>0.64±0.05</td>-->
+<!--                                        <td>0.59±0.03</td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.61</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Dalle-2</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.58±0.04</td>-->
+<!--                                        <td>0.62±0.06</td>-->
+<!--                                        <td>0.54±0.04</td>-->
+<!--                                        <td>0.27</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.40</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>OpenJourney</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.53±0.02</td>-->
+<!--                                        <td>0.59±0.05</td>-->
+<!--                                        <td>0.50±0.02</td>-->
+<!--                                        <td>0.30</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.47</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Stable Diffusion 2.1</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.56±0.02</td>-->
+<!--                                        <td>0.53±0.05</td>-->
+<!--                                        <td>0.50±0.03</td>-->
+<!--                                        <td>0.38</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.50</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="MIE" colspan="14" style="text-align: center; font-weight: bold;">Mask-guided Image Editing Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>SDXL-Inpainting</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.49±0.05</td>-->
+<!--                                        <td>0.51±0.02</td>-->
+<!--                                        <td><strong>0.37±0.05</strong></td>-->
+<!--                                        <td>0.50</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.72</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>SD-Inpainting</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.28±0.04</td>-->
+<!--                                        <td>0.27±0.10</td>-->
+<!--                                        <td>0.17±0.07</td>-->
+<!--                                        <td>0.31</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.49</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>GLIDE</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.20±0.05</td>-->
+<!--                                        <td>0.48±0.06</td>-->
+<!--                                        <td>0.16±0.05</td>-->
+<!--                                        <td>0.33</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.56</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>BlendedDiffusion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.12±0.03</td>-->
+<!--                                        <td>0.11±0.03</td>-->
+<!--                                        <td>0.05±0.02</td>-->
+<!--                                        <td>0.36</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.44</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="TIE" colspan="14" style="text-align: center; font-weight: bold;">Text-guided Image Editing Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>MagicBrush</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.51±0.01</td>-->
+<!--                                        <td> 0.65±0.06</td>-->
+<!--                                        <td><strong>0.47±0.02</strong></td>-->
+<!--                                        <td>0.44</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.67</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>InstructPix2Pix</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.29±0.01</td>-->
+<!--                                        <td>0.70±0.06</td>-->
+<!--                                        <td>0.27±0.02</td>-->
+<!--                                        <td>0.55</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.74</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Prompt-to-prompt</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.17±0.05</td>-->
+<!--                                        <td>0.55±0.09</td>-->
+<!--                                        <td>0.15±0.06</td>-->
+<!--                                        <td>0.36</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.53</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>CycleDiffusion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.17±0.03</td>-->
+<!--                                        <td>0.56±0.11</td>-->
+<!--                                        <td>0.14±0.04</td>-->
+<!--                                        <td>0.41</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.63</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>SDEdit</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.04±0.03</td>-->
+<!--                                        <td>0.56±0.12</td>-->
+<!--                                        <td>0.04±0.03</td>-->
+<!--                                        <td>0.13</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.13</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Text2Live</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.02±0.01</td>-->
+<!--                                        <td>0.82±0.04</td>-->
+<!--                                        <td>0.02±0.02</td>-->
+<!--                                        <td>0.10</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.17</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DiffEdit</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.02±0.01</td>-->
+<!--                                        <td>0.23±0.04</td>-->
+<!--                                        <td>0.01±0.01</td>-->
+<!--                                        <td>0.24</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.24</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>Pix2PixZero</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.01±0.00</td>-->
+<!--                                        <td>0.48±0.09</td>-->
+<!--                                        <td>0.01±0.01</td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="SDIG" colspan="14" style="text-align: center; font-weight: bold;">Subject-driven Image Generation Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>SuTI</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.64±0.11</td>-->
+<!--                                        <td>0.68±0.08</td>-->
+<!--                                        <td><strong>0.58±0.12</strong></td>-->
+<!--                                        <td>0.20</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.39</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DreamBooth</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.51±0.08</td>-->
+<!--                                        <td>0.93±0.02</td>-->
+<!--                                        <td>0.55±0.11</td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.60</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>BLIP-Diffusion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.29±0.04</td>-->
+<!--                                        <td>0.93±0.04</td>-->
+<!--                                        <td>0.35±0.06</td>-->
+<!--                                        <td>0.22</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.39</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>TextualInversion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.21±0.04</td>-->
+<!--                                        <td>0.74±0.08</td>-->
+<!--                                        <td>0.21±0.05</td>-->
+<!--                                        <td>0.35</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.52</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DreamBooth-Lora</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.07±0.01</td>-->
+<!--                                        <td>0.82±0.07</td>-->
+<!--                                        <td>0.09±0.01</td>-->
+<!--                                        <td>0.29</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="SDIE" colspan="14" style="text-align: center; font-weight: bold;">Subject-driven Image Editing Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>PhotoSwap</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.34±0.02</td>-->
+<!--                                        <td>0.65±0.04</td>-->
+<!--                                        <td><strong>0.36±0.02</strong></td>-->
+<!--                                        <td>0.35</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.46</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DreamEdit</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.31±0.03</td>-->
+<!--                                        <td>0.61±0.03</td>-->
+<!--                                        <td>0.32±0.03</td>-->
+<!--                                        <td>0.33</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.52</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>BLIP-Diffusion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.09±0.03</td>-->
+<!--                                        <td>0.70±0.02</td>-->
+<!--                                        <td>0.09±0.03</td>-->
+<!--                                        <td>0.41</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.47</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="MCIC" colspan="14" style="text-align: center; font-weight: bold;">Multi-concept Image Composition Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>CustomDiffusion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.26±0.01</td>-->
+<!--                                        <td>0.86±0.05</td>-->
+<!--                                        <td><strong>0.29±0.01</strong></td>-->
+<!--                                        <td>0.73</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.88</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>DreamBooth</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.11±0.02</td>-->
+<!--                                        <td>0.78±0.02</td>-->
+<!--                                        <td>0.13±0.02</td>-->
+<!--                                        <td>0.61</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.71</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>TextualInversion</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.04±0.01</td>-->
+<!--                                        <td>0.74±0.05</td>-->
+<!--                                        <td>0.05±0.01</td>-->
+<!--                                        <td>0.62</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.77</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr class="th">-->
+<!--                                        <td id="CIG" colspan="14" style="text-align: center; font-weight: bold;">Control-guided Image Generation Model</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>ControlNet</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.42±0.05</td>-->
+<!--                                        <td>0.19±0.04</td>-->
+<!--                                        <td><strong>0.23±0.04</strong></td>-->
+<!--                                        <td>0.37</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.57</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr>-->
+<!--                                        <td>UniControl</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>Unknown</td>-->
+<!--                                        <td>0.38±0.07</td>-->
+<!--                                        <td>0.20±0.06</td>-->
+<!--                                        <td>0.23±0.07</td>-->
+<!--                                        <td>0.36</td>-->
+<!--                                        <td>-</td>-->
+<!--                                        <td>0.58</td>-->
+<!--                                        <td>-</td>-->
+<!--                                    </tr>-->
+<!--                        </div>-->
+<!--                        </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        </div>-->
+<!--    </section>-->
+
+
+
+<!--    &lt;!&ndash; BibTex citation &ndash;&gt;-->
+<!--    <section class="section" id="BibTeX">-->
+<!--        <div class="container is-max-desktop content">-->
+<!--            <h2 class="title">Reference</h2>-->
+<!--            Please kindly cite our paper if you use our code, data, models or results:-->
+<!--            <br><br>-->
+<!--            <pre><code>@article{ku2023imagenhub,-->
+<!--  title={ImagenHub: Standardizing the evaluation of conditional image generation models},-->
+<!--  author={Max Ku and Tianle Li and Kai Zhang and Yujie Lu and Xingyu Fu and Wenwen Zhuang and Wenhu Chen},-->
+<!--  journal={arXiv preprint arXiv:2310.01596},-->
+<!--  year={2023}-->
+<!--}</code></pre>-->
+<!--        </div>-->
+<!--    </section>-->
+
+
+    <footer class="footer">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="content">
+
+                        <p>
+                            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a>                            project page. You are free to borrow the of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"
+                                target="_blank">Creative
+              Commons Attribution-ShareAlike 4.0 International License</a>.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+<style>
+    .buttonGroup {
+        text-align: center;
+    }
+    
+    .buttonGroup>button {
+        padding: 15px;
+        color: white;
+        background-color: #363636;
+        border-radius: 5px;
+    }
+    
+    .buttonGroup>button:hover {
+        box-shadow: 5px;
+    }
+</style>
+
+</html>
