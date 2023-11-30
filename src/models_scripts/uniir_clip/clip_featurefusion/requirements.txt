@@ -1,0 +1,15 @@
+# Python version: 3.9
+python-dotenv
+omegaconf
+numpy
+torch
+torchvision
+wandb
+ftfy
+regex
+tqdm
+git+https://github.com/openai/CLIP.git
+typeguard
+faiss-gpu
+datasets
+transformers

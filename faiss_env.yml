@@ -1,0 +1,13 @@
+name: faiss
+channels:
+  - pytorch
+dependencies:
+  - python=3.8
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit
+  - faiss-gpu
+  - pip
+  - pip:
+    - omegaconf
