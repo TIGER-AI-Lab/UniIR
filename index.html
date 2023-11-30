@@ -127,7 +127,7 @@
                                         <span class="icon">
                                           🤗
                                         </span>
-                                        <span>Models(Coming Soon!)</span>
+                                        <span>Models</span>
                                     </a>
                                 </span>
 
@@ -287,7 +287,8 @@ of query and instruction to retrieve information in any modality.
                 We experimented with two multimodal fusion mechanisms for UniIR models,
                   namely score-level fusion and feature-level fusion. To explore the effectiveness of these approaches,
                   we adapted pre-trained models such as CLIP
-                  and BLIP for our purposes as follows.
+                  and BLIP for our purposes as follows. Instructions were
+integrated as prefixes to the text query for UniIR models.
               </p>
             </div>
           </div>
@@ -327,7 +328,7 @@ we build a large-scale retrieval benchmark named M-BEIR
 M-BEIR benchmark comprises 8 multimodal retrieval
 tasks and 10 datasets from a variety of domains and image
 sources.  Each task is accompanied by human-authored instructions, encompassing <b>1.5 million queries</b> and a pool of
-<b>5.6 million retrieval candidates</b> in total
+<b>5.6 million retrieval candidates</b> in total.
               </p>
             </div>
           </div>
@@ -384,10 +385,11 @@ sources.  Each task is accompanied by human-authored instructions, encompassing 
             <h1 class="title is-1">Benchmarking UniIR on M-BEIR</h1>
               <div class="content has-text-justified">
               <p>
-Our evaluation encompasses SoTA models,
+Our evaluation encompasses zero-shot SoTA models,
                   multi-task fine-tuned baselines (fine-tuned jointly on all M-BEIR training data without incorporating instructions),
                   and UniIR models.
-                  Retrieval is performed from the M-BEIR 5.6 million candidate pool, which consists of the retrieval corpus from all tasks.
+                  Retrieval is performed from the M-BEIR 5.6 million candidate pool, which consists of the retrieval corpus from all tasks. We demonstrate that zero-shot models struggle to retrieve queried information from such a heterogeneous pool and
+instruction-tuning as a crucial component of UniIR.
               </p>
             </div>
           </div>
@@ -481,7 +483,7 @@ datasets (WebQA, OVEN, CIRR) and fine-tuned UniIR
 models and multi-task baselines on the remaining M-BEIR
 datasets. At test time, we evaluated the zero-shot performance of all fine-tuned models,
 as well as SoTA pre-trained retrievers on
-the three held-out datasets.
+the three held-out datasets. UniIR models exhibit superior generalization abilities on unseen tasks and datasets compared to baselines.
               </p>
             </div>
           </div>
