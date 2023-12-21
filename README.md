@@ -1,7 +1,7 @@
 # UniIR
 ### This repo is under construction. Please stay tuned.
 
-[**🌐 Homepage**](https://tiger-ai-lab.github.io/UniIR/) | [**🤗 Dataset**](https://huggingface.co/MBEIR) | [**📖 arXiv**](https://arxiv.org/pdf/2311.17136.pdf) | [**GitHub**](https://github.com/TIGER-AI-Lab/UniIR)
+[**🌐 Homepage**](https://tiger-ai-lab.github.io/UniIR/) | [**🤗 Dataset**](https://huggingface.co/datasets/TIGER-Lab/M-BEIR) | [**📖 arXiv**](https://arxiv.org/pdf/2311.17136.pdf) | [**GitHub**](https://github.com/TIGER-AI-Lab/UniIR)
 
 This repo contains the codebase for the paper "[UniIR: Training and Benchmarking Universal Multimodal
 Information Retrievers](https://arxiv.org/pdf/2311.17136.pdf)"
@@ -54,12 +54,10 @@ mbeir_data
 
 **BibTeX:**
 ```bibtex
-@misc{wei2023uniir,
-      title={UniIR: Training and Benchmarking Universal Multimodal Information Retrievers},
-      author={Cong Wei and Yang Chen and Haonan Chen and Hexiang Hu and Ge Zhang and Jie Fu and Alan Ritter and Wenhu Chen},
-      year={2023},
-      eprint={2311.17136},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{wei2023uniir,
+  title={UniIR: Training and Benchmarking Universal Multimodal Information Retrievers},
+  author={Wei, Cong and Chen, Yang and Chen, Haonan and Hu, Hexiang and Zhang, Ge and Fu, Jie and Ritter, Alan and Chen, Wenhu},
+  journal={arXiv preprint arXiv:2311.17136},
+  year={2023}
 }
 ```
