@@ -1,4 +1,4 @@
-name: clip_sf
+name: clip
 channels:
   - defaults
   - conda-forge

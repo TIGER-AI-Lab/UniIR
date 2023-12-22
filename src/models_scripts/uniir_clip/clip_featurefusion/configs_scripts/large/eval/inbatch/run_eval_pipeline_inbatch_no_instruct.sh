@@ -6,14 +6,14 @@ set -e  # Exit immediately if a command exits with a non-zero status
 source /home/miniconda3/etc/profile.d/conda.sh # <--- Change this to the path of your conda.sh
 
 # Path to the codebase and config file
-SRC="$HOME/mbeir/src"  # Absolute path to codebse /mbeir/src # <--- Change this to the path of your mbeir/src
+SRC="$HOME/UniIR/src"  # Absolute path to codebse /UniIR/src # <--- Change this to the path of your UniIR/src
 
 # Path to models_script dir
 SCRIPT_DIR="$SRC/models_scripts"
 
 # Path to MBEIR data and MBEIR directory where we store the checkpoints, embeddings, etc.
 MBEIR_DIR="/data/mbeir/" # <--- Change this to the MBEIR directory
-MBEIR_DATA_DIR="/data/mbeir/mbeir_data/" # <--- Change this to the MBEIR data directory
+MBEIR_DATA_DIR="/data/mbeir/M-BEIR/" # <--- Change this to the MBEIR data directory you download from HF page
 
 # Path to config dir
 MODEL="clip_union/clip_featurefusion"  # <--- Change this to the model you want to run
@@ -34,7 +34,7 @@ echo  "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 cd $SCRIPT_DIR
 
 # Activate conda environment
-conda activate clip_ff # <--- Change this to the name of your conda environment
+conda activate clip # <--- Change this to the name of your conda environment
 
 # Run Embedding command
 CONFIG_PATH="$CONFIG_DIR/embed.yaml"

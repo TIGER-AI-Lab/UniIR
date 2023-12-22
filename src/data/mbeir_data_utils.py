@@ -23,9 +23,9 @@ def build_mbeir_dataset_from_config(config, img_preprocess_fn, tokenizer, datase
         cand_pool_dataset = MBEIRCandidatePoolDataset(
             mbeir_data_dir=config.mbeir_data_dir,
             cand_pool_data_path=data_config.cand_pool_path,
-            cand_instruct_path=data_config.cand_instruct_path,
+            cand_metadata_path=data_config.cand_metadata_path,
             img_preprocess_fn=img_preprocess_fn,
-            enable_cand_instruct=data_config.enable_cand_instruct,
+            enable_cand_metadata=data_config.enable_cand_metadata,
         )
         cand_pool_collator = MBEIRCandidatePoolCollator(
             tokenizer=tokenizer,
@@ -53,11 +53,11 @@ def build_mbeir_dataset_from_config(config, img_preprocess_fn, tokenizer, datase
         query_data_path=query_data_path,
         cand_pool_path=cand_pool_path,
         query_instruct_path=data_config.query_instruct_path,
-        cand_instruct_path=data_config.cand_instruct_path,
+        cand_metadata_path=data_config.cand_metadata_path,
         img_preprocess_fn=img_preprocess_fn,
         mode=mode,
         enable_query_instruct=data_config.enable_query_instruct,
-        enable_cand_instruct=data_config.enable_cand_instruct,
+        enable_cand_metadata=data_config.enable_cand_metadata,
         shuffle_cand=data_config.shuffle_cand,
         hard_neg_num=hard_neg_num,
         returns=data_config.returns,

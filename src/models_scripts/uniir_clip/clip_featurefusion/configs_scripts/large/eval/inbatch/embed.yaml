@@ -107,12 +107,12 @@ data_config:
     
 
     # Relative to mbeir_data_dir
-    train_dir_name: "train"
-    val_dir_name: "val"
-    test_dir_name: "test"
-    cand_pool_dir_name: "cand_pool"
+    train_dir_name: "query/train"
+    val_dir_name: "query/val"
+    test_dir_name: "query/test"
+    cand_pool_dir_name: "cand_pool/local"
     query_instruct_path: "instructions/query_instructions.tsv"
-    cand_instruct_path: "instructions/candidate_instructions.tsv"
+    cand_metadata_path: "instructions/candidate_metadata.tsv"
 
 # Distributed training settings
 dist_config:

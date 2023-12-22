@@ -203,7 +203,7 @@ def generate_embeds_for_config(model, img_preprocess_fn, tokenizer, config):
     # Config for dataset
     data_config = config.data_config
     query_instruct_path = data_config.query_instruct_path
-    cand_instruct_path = data_config.cand_instruct_path
+    cand_metadata_path = data_config.cand_metadata_path
     cand_pool_dir = data_config.cand_pool_dir_name
     image_size = tuple(map(int, data_config.image_size.split(",")))
 
@@ -243,7 +243,7 @@ def generate_embeds_for_config(model, img_preprocess_fn, tokenizer, config):
             if split_name == "cand_pool":
                 cand_pool_name = cand_pool_name.lower()
                 cand_pool_file_name = f"mbeir_{cand_pool_name}_{split_name}.jsonl"
-                cand_pool_data_path = os.path.join(split_dir, cand_pool_file_name)
+                cand_pool_data_path = os.path.join(cand_pool_dir, cand_pool_file_name)
 
                 print_config = False
                 if dist_utils.is_main_process():
@@ -253,9 +253,9 @@ def generate_embeds_for_config(model, img_preprocess_fn, tokenizer, config):
                 dataset = MBEIRCandidatePoolDataset(
                     mbeir_data_dir=mbeir_data_dir,
                     cand_pool_data_path=cand_pool_data_path,
-                    cand_instruct_path=cand_instruct_path,
+                    cand_metadata_path=cand_metadata_path,
                     img_preprocess_fn=img_preprocess_fn,
-                    enable_cand_instruct=data_config.enable_cand_instruct,
+                    enable_cand_metadata=data_config.enable_cand_metadata,
                     print_config=print_config,
                 )
                 collator = MBEIRCandidatePoolCollator(
@@ -283,11 +283,11 @@ def generate_embeds_for_config(model, img_preprocess_fn, tokenizer, config):
                     query_data_path=query_data_path,
                     cand_pool_path=cand_pool_data_path,
                     query_instruct_path=query_instruct_path,
-                    cand_instruct_path=cand_instruct_path,
+                    cand_metadata_path=cand_metadata_path,
                     img_preprocess_fn=img_preprocess_fn,
                     mode=mode,
                     enable_query_instruct=data_config.enable_query_instruct,
-                    enable_cand_instruct=data_config.enable_cand_instruct,
+                    enable_cand_metadata=data_config.enable_cand_metadata,
                     shuffle_cand=data_config.shuffle_cand,
                     print_config=print_config,
                 )
