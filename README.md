@@ -22,8 +22,8 @@ We propose the **UniIR**(Universal multimodal Information Retrieval) **framework
 1. [M-BEIR](#M-BEIR)
 2. [Training](#Training)
 3. [Evaluation](#Evaluation)
-2. [Model Zoo](#Model Zoo)
-4. [Citations and Contact](#Citation and Contact)
+2. [Model Zoo](#Model-Zoo)
+4. [Citations and Contact](#Citation-and-Contact)
 
 
 # M-BEIR
