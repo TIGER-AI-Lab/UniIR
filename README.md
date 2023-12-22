@@ -54,7 +54,7 @@ conda env create -f blip_env.yml
 ### 2. Scripts
 #### UniIR CLIP_SF
 ```bash
-cd src/models_scripts/unii_clip/clip_scorefusion/configs_scripts/large/train/inbatch/
+cd src/models_scripts/uniir_clip/clip_scorefusion/configs_scripts/large/train/inbatch/
 ```
 Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your own environment and paths.
 ```bash
@@ -63,7 +63,7 @@ bash run_inbatch.sh
 
 #### UniIR BLIP_FF
 ```bash
-cd src/models_scripts/unii_blip/blip_featurefusion/configs_scripts/large/train/inbatch/
+cd src/models_scripts/uniir_blip/blip_featurefusion/configs_scripts/large/train/inbatch/
 ```
 Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your own environment and paths.
 ```bash
