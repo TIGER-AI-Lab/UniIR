@@ -80,29 +80,9 @@ class MBEIRDatasetBase(Dataset):
                 parts = line.strip().split("\t")
                 # Construct the key to be dataset_id, query_modality, cand_modality
                 key = f"{parts[3]}, {parts[0]}, {parts[1]}"
-                prompts = [p for p in parts[5:] if p]  # Filters out any empty prompts
-                prompts_dict[key] = prompts
-        self.query_instructions = prompts_dict
-
-    def _load_cand_metadata(self, metadata_path):
-        """Validate and load metadata."""
-        full_metadata_path = os.path.join(self.mbeir_data_dir, metadata_path)
-        # Validate the path and file extension
-        assert os.path.exists(
-            full_metadata_path
-        ), f"Candidate metadata Path {full_metadata_path} does not exist"
-        assert full_metadata_path.endswith(
-            ".tsv"
-        ), f"Candidate metadata Path {full_metadata_path} is not a tsv file"
-        prompts_dict = {}
-        with open(full_metadata_path, "r") as f:
-            for line in f.readlines():
-                parts = line.strip().split("\t")
-                # Construct the key based on dataset_id and cand_modality
-                key = f"{parts[2]}, {parts[0]}"
                 prompts = [p for p in parts[4:] if p]  # Filters out any empty prompts
                 prompts_dict[key] = prompts
-        self.candidate_metadata = prompts_dict
+        self.query_instructions = prompts_dict
 
     def _load_and_preprocess_image(self, query_img_path):
         """Load an image given a path"""
@@ -122,14 +102,6 @@ class MBEIRDatasetBase(Dataset):
         assert prompt, f"Prompt is empty for {key}"
         return prompt
 
-    def _get_random_cand_prompt(self, dataset_id, cand_modality):
-        key = f"{dataset_id}, {cand_modality}"
-        prompts = self.candidate_metadata.get(key, [])
-        assert prompts, f"Cannot find prompts for {key}"
-        prompt = format_string(random.choice(prompts))
-        assert prompt, f"Prompt is empty for {key}"
-        return prompt
-
     def __getitem__(self, index):
         raise NotImplementedError("This method should be implemented in derived classes.")
 
@@ -141,11 +113,9 @@ class MBEIRMainDataset(MBEIRDatasetBase):
         query_data_path,  # Relate path to the query data
         cand_pool_path,  # Relate path to the candidate pool data
         query_instruct_path,  # Relate path to the query instructions
-        cand_metadata_path,  # Relate path to the candidate metadata
         img_preprocess_fn,
         mode=Mode.TRAIN,
         enable_query_instruct=True,  # Whether to enable instructions
-        enable_cand_metadata=True,  # Whether to enable candidate metadata instructions
         shuffle_cand=True,  # Whether to shuffle the candidates
         hard_neg_num=0,  # Number of negative examples in the batch
         returns=None,  # Catch any return-related settings
@@ -156,13 +126,11 @@ class MBEIRMainDataset(MBEIRDatasetBase):
         self._load_query_data(query_data_path)
         self._load_cand_pool_as_dict(cand_pool_path)
         self._load_query_instructions(query_instruct_path)
-        self._load_cand_metadata(cand_metadata_path)
 
         self.mode = mode
         self.shuffle_cand = shuffle_cand
         self.select_cand = self._get_random_cand if self.shuffle_cand else self._get_first_cand
         self.enable_query_instruct = enable_query_instruct
-        self.enable_cand_metadata = enable_cand_metadata
         self.hard_neg_num = hard_neg_num
 
         returns = {} if returns is None else returns
@@ -176,7 +144,6 @@ class MBEIRMainDataset(MBEIRDatasetBase):
             self.query_data_path = query_data_path
             self.cand_pool_path = cand_pool_path
             self.query_instruct_path = query_instruct_path
-            self.cand_metadata_path = cand_metadata_path
             self._print_config()
 
     def _print_config(self):
@@ -188,9 +155,6 @@ class MBEIRMainDataset(MBEIRDatasetBase):
         print(f"Enable Query Instructions: {self.enable_query_instruct}")
         if self.enable_query_instruct:
             print(f"Query Instructions Path: {self.query_instruct_path}")
-        print(f"Enable Candidate Metadata: {self.enable_cand_metadata}")
-        if self.enable_cand_metadata:
-            print(f"Candidate Metadata Path: {self.cand_metadata_path}")
         print(f"Shuffle Candidates: {self.shuffle_cand}")
         print(f"Hard Negative Number: {self.hard_neg_num}")
         print(f"Returns: {self.returns}")
@@ -242,9 +206,7 @@ class MBEIRMainDataset(MBEIRDatasetBase):
         pos_cand_dataset_id = selected_pos_cand_did.split(":")[0]
         pos_cand_modality = pos_cand.get("modality", None)
         pos_cand_txt = pos_cand.get("txt") or ""
-        pos_cand_prompt = self._get_random_cand_prompt(pos_cand_dataset_id, pos_cand_modality)
-        pos_cand_txt_with_prompt = format_string(f"{pos_cand_prompt} {pos_cand_txt}")
-        pos_cand_txt_without_prompt = format_string(pos_cand_txt)
+        pos_cand_txt = format_string(pos_cand_txt)
 
         # Randomly sample a query prompt
         # Note:query_modality and pos_cand_modality should define the golden modalities of the current mbeir_entry task.
@@ -269,13 +231,8 @@ class MBEIRMainDataset(MBEIRDatasetBase):
                 for neg_cand_did in selected_neg_cand_id_list:
                     neg_cand = self.cand_pool.get(neg_cand_did, None)
                     neg_cand_txt = neg_cand.get("txt") or ""
-                    neg_cand_modality = neg_cand.get("modality", None)
-                    neg_cand_dataset_id = neg_cand_did.split(":")[0]
-                    neg_cand_prompt = self._get_random_cand_prompt(neg_cand_dataset_id, neg_cand_modality)
-                    neg_cand_txt_with_prompt = format_string(f"{neg_cand_prompt} {neg_cand_txt}")
-                    neg_cand_txt_without_prompt = format_string(neg_cand_txt)
-                    neg_cand["txt_with_prompt"] = neg_cand_txt_with_prompt
-                    neg_cand["txt_without_prompt"] = neg_cand_txt_without_prompt
+                    neg_cand_txt = format_string(neg_cand_txt)
+                    neg_cand["txt"] = neg_cand_txt
                     selected_neg_cand_list.append(neg_cand)
 
         def _prepare_data_dict(txt, img_path):
@@ -299,14 +256,14 @@ class MBEIRMainDataset(MBEIRDatasetBase):
                 instance.update({"p_did": hash_did(selected_pos_cand_did)})
 
             pos_cand = _prepare_data_dict(
-                pos_cand_txt_with_prompt if self.enable_cand_metadata else pos_cand_txt_without_prompt,
+                pos_cand_txt,
                 pos_cand.get("img_path", None),
             )
             instance.update({"pos_cand": pos_cand})
 
             neg_cand_list = [
                 _prepare_data_dict(
-                    neg_cand["txt_with_prompt"] if self.enable_cand_metadata else neg_cand["txt_without_prompt"],
+                    neg_cand["txt"],
                     neg_cand.get("img_path", None),
                 )
                 for neg_cand in selected_neg_cand_list
@@ -321,16 +278,12 @@ class MBEIRCandidatePoolDataset(MBEIRDatasetBase):
         self,
         mbeir_data_dir,  # Root directory of the MBEIR dataset
         cand_pool_data_path,  # Relate path to the candidate pool data
-        cand_metadata_path,  # Relate path to the Candidate Metadata
         img_preprocess_fn,
-        enable_cand_metadata=True,  # Whether to enable instructions
         returns=None,  # Catch any return-related settings
         print_config=True,  # Whether to print the dataset config
     ):
         super().__init__(mbeir_data_dir, img_preprocess_fn)
         self._load_cand_pool(cand_pool_data_path)
-        self._load_cand_metadata(cand_metadata_path)
-        self.enable_cand_metadata = enable_cand_metadata
 
         returns = {} if returns is None else returns
         self.returns = {
@@ -342,16 +295,12 @@ class MBEIRCandidatePoolDataset(MBEIRDatasetBase):
         # Print dataset config
         if print_config:
             self.cand_pool_path = cand_pool_data_path
-            self.cand_metadata_path = cand_metadata_path
             self._print_config()
 
     def _print_config(self):
         # Print dataset config
         print(f"\n---Mbeir Candidate Pool Dataset Config---")
         print(f"Candidate Pool Path: {self.cand_pool_path}")
-        print(f"Enable Candidate Metadata: {self.enable_cand_metadata}")
-        if self.enable_cand_metadata:
-            print(f"Candidate Metadata Path: {self.cand_metadata_path}")
         print(f"Returns: {self.returns}")
         print(f"--------------------------\n")
 
@@ -366,13 +315,11 @@ class MBEIRCandidatePoolDataset(MBEIRDatasetBase):
         did = mbeir_cand_pool_entry.get("did", None)
         dataset_id = did.split(":")[0] if did else None
         cand_txt = mbeir_cand_pool_entry.get("txt") or ""
+        cand_txt = format_string(f"{cand_txt}")
         cand_modality = mbeir_cand_pool_entry.get("modality", None)
-        cand_prompt = self._get_random_cand_prompt(dataset_id, cand_modality)
-        cand_txt_with_prompt = format_string(f"{cand_prompt} {cand_txt}")
-        cand_txt_without_prompt = format_string(f"{cand_txt}")
 
         instance = {
-            "txt": cand_txt_with_prompt if self.enable_cand_metadata else cand_txt_without_prompt,
+            "txt": cand_txt,
             "img": img,
             "modality": cand_modality,
         }

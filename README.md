@@ -7,14 +7,14 @@ This repo contains the codebase for the paper "[UniIR: Training and Benchmarking
 Information Retrievers](https://arxiv.org/pdf/2311.17136.pdf)"
 
 ## 🔔News
-
+- **[2024-01-21]: Refactor Codebase and Release the Preprocessing Scripts for all the datasets.**
 - **🔥[2023-12-21]: Our [M-BEIR Benchmark](https://huggingface.co/datasets/TIGER-Lab/M-BEIR) is now available for use.**
 
 
 ## Introduction
 We propose the **UniIR**(Universal multimodal Information Retrieval) **framework** to learn a single retriever to accomplish (possibly) any retrieval task. Unlike traditional IR systems, UniIR needs to follow the instructions to take a heterogeneous query to retrieve from a heterogeneous candidate pool with millions of candidates in diverse modalities.
 
-<img src="uniir_teaser.jpg" alt="UniIR Teaser" style="width:80%;">
+<img src="docs/images/uniir_teaser.jpg" alt="UniIR Teaser" style="width:80%;">
 
 
 ## Content
@@ -43,18 +43,18 @@ The scripts will automatically download the pretrained checkpoints.
 #### UniIR CLIP_SF and CLIP_FF
 ```bash
 # From the root directory of the repo
-cd src/models_scripts/uniir_clip/
+cd src/models/uniir_clip/
 conda env create -f clip_env.yml
 ```
 #### UniIR BLIP_SF and BLIP_FF
 ```bash
-cd src/models_scripts/uniir_blip/
+cd src/models/uniir_blip/
 conda env create -f blip_env.yml
 ```
 ### 2. Scripts
 #### UniIR CLIP_SF
 ```bash
-cd src/models_scripts/uniir_clip/clip_scorefusion/configs_scripts/large/train/inbatch/
+cd src/models/uniir_clip/clip_scorefusion/configs_scripts/large/train/inbatch/
 ```
 Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your own environment and paths.
 ```bash
@@ -63,7 +63,7 @@ bash run_inbatch.sh
 
 #### UniIR BLIP_FF
 ```bash
-cd src/models_scripts/uniir_blip/blip_featurefusion/configs_scripts/large/train/inbatch/
+cd src/models/uniir_blip/blip_featurefusion/configs_scripts/large/train/inbatch/
 ```
 Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your own environment and paths.
 ```bash
@@ -82,7 +82,7 @@ conda env create -f faiss_env.yml
 ### 2. Scripts
 #### UniIR CLIP_SF
 ```bash
-cd src/models_scripts/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
+cd src/models/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
 ```
 Modify `embed.yaml` and `run_eval_pipeline_inbatch.sh` for your own environment and paths.
 ```bash
