@@ -47,6 +47,8 @@ The scripts will automatically download the pretrained CLIP and BLIP checkpoints
 #### UniIR Env
 ```bash
 git clone https://github.com/TIGER-AI-Lab/UniIR
+cd UniIR
+
 cd src/models/
 conda env create -f uniir_env.yml
 ```
