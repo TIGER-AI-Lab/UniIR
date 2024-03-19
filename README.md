@@ -144,7 +144,7 @@ The default configuration will evaluate the UniIR BLIP_FF Large model on both th
 ```bash
 bash run_eval_pipeline_inbatch.sh
 ```
-Similarly, you can evaluate the UniIR CLIP_FF, BLIP_SF, and BLIP_FF models by modifying the corresponding scripts.
+#### You can train and evaluate the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
 
 ## Model Zoo
 We provide the UniIR model checkpoints in the [**🤗 Checkpoints**](https://huggingface.co/TIGER-Lab/UniIR).
