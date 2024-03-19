@@ -92,7 +92,7 @@ You need to download the M-BEIR benchmark by following the instructions in the [
 You can train the UniIR models from scratch or download the pretrained UniIR checkpoints by following the instructions in the [**Model Zoo**](#Model-Zoo) section.
 
 ### 4. Scripts
-#### UniIR CLIP_SF
+#### To evaluate UniIR CLIP_SF Large with the default configuration:
 ```bash
 cd src/models/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
 ```
@@ -117,7 +117,7 @@ bash run_eval_pipeline_inbatch.sh
 ```
 ```embed```, ```index```, ```logger``` and ```retrieval_results``` will be saved in the ```$UNIIR_DIR``` directory.
 
-#### UniIR BLIP_FF
+#### To evaluate UniIR BLIP_FF Large with the default configuration:
 ```bash
 cd src/models/unii_blip/blip_featurefusion/configs_scripts/large/eval/inbatch/
 ```
