@@ -1,7 +1,7 @@
 # Train BLIPFeatureFusion model on MBEIR dataset
 
 # Initialize Conda
-source /home/congwei/miniconda3/etc/profile.d/conda.sh # <--- Change this to the path of your conda.sh
+source /home/miniconda3/etc/profile.d/conda.sh # <--- Change this to the path of your conda.sh
 
 # Path to the codebase and config file
 SRC="$HOME/UniIR/src"  # Absolute path to codebse /UniIR/src # <--- Change this to the path of your UniIR/src
@@ -10,8 +10,8 @@ SRC="$HOME/UniIR/src"  # Absolute path to codebse /UniIR/src # <--- Change this 
 COMMON_DIR="$SRC/common"
 
 # Path to MBEIR data and UniIR directory where we store the checkpoints, embeddings, etc.
-UNIIR_DIR="/data/congwei/UniIR/" # <--- Change this to the UniIR directory
-MBEIR_DATA_DIR="/data/congwei/UniIR/M-BEIR/" # <--- Change this to the MBEIR data directory you download from HF page
+UNIIR_DIR="/data/UniIR/" # <--- Change this to the MBEIR directory
+MBEIR_DATA_DIR="/data/UniIR/M-BEIR/" # <--- Change this to the MBEIR data directory you download from HF page
 
 # Path to config dir
 MODEL="uniir_blip/blip_featurefusion"  # <--- Change this to the model you want to run

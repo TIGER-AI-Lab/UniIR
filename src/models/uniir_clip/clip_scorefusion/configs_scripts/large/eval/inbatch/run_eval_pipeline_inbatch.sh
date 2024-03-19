@@ -11,8 +11,8 @@ SRC="$HOME/UniIR/src"  # Absolute path to codebse /UniIR/src # <--- Change this 
 # Path to common dir
 COMMON_DIR="$SRC/common"
 
-# Path to MBEIR data and MBEIR directory where we store the checkpoints, embeddings, etc.
-UNIIR_DIR="/data/UniIR/" # <--- Change this to the MBEIR directory
+# Path to MBEIR data and UniIR directory where we store the checkpoints, embeddings, etc.
+UNIIR_DIR="/data/UniIR/" # <--- Change this to the UniIR directory
 MBEIR_DATA_DIR="/data/UniIR/M-BEIR/" # <--- Change this to the MBEIR data directory you download from HF page
 
 # Path to config dir

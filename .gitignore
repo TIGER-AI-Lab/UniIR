@@ -162,6 +162,8 @@ cython_debug/
 # mbeir specific
 *.pth
 *.log
+../mbeir/src/models_scripts/baselines/
+
 #*.ipynb
 wandb/
 log.txt
