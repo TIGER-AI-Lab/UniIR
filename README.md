@@ -45,6 +45,7 @@ To train the UniIR models from pretrained CLIP and BLIP checkpoints, please foll
 The scripts will automatically download the pretrained CLIP and BLIP checkpoints.
 ### 1. Environment
 #### UniIR Env
+Prepare the codebase of the UniIR project and Conda environment using the following commands:
 ```bash
 git clone https://github.com/TIGER-AI-Lab/UniIR
 cd UniIR
