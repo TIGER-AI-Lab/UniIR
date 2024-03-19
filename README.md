@@ -32,7 +32,11 @@ To train and evaluate universal multimodal retrieval models, we build a large-sc
 
 ## M-BEIR Downloading
 We provide the M-BEIR dataset in the [**🤗 Dataset**](https://huggingface.co/datasets/TIGER-Lab/M-BEIR).
-Please follow the instructions to download the dataset and prepare the data for training and evaluation.
+**Please follow the instructions provided on the HF page** to download the dataset and prepare the data for training and evaluation.
+You need to set up GiT LFS and directly clone the repo:
+```
+git clone https://huggingface.co/datasets/TIGER-Lab/M-BEIR
+```
 
 # UniIR Models
 We provide the codebase for training and evaluating the UniIR CLIP-ScoreFusion, CLIP-FeatureFusion, BLIP-ScoreFusion, and BLIP-FeatureFusion models.
