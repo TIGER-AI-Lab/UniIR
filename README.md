@@ -52,6 +52,14 @@ conda env create -f uniir_env.yml
 cd src/models/uniir_clip/clip_scorefusion/configs_scripts/large/train/inbatch/
 ```
 Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your own environment and paths.
+
+#### Note:
+1. Modify the ```UNIIR_DIR``` in the `run_inbatch.sh` to the directory where you
+want to store the checkpoints.
+2. Modify the ```MBEIR_DATA_DIR``` in the `run_inbatch.sh` to the directory where you store the M-BEIR benchmark.
+3. Modify the ```SRC_DIR``` in the `run_inbatch.sh` to the directory where you store the source code of the project.
+
+Then you can run the following command to train the UniIR CLIP_SF Large model.
 ```bash
 bash run_inbatch.sh
 ```
@@ -65,7 +73,7 @@ Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your ow
 bash run_inbatch.sh
 ```
 
-Similarly, you can train the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
+#### Similarly, you can train the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
 
 ## Evaluation
 We provide the evaluation pipline for the UniIR models on the M-BEIR benchmark.
@@ -77,22 +85,29 @@ cd src/common/
 conda env create -f faiss_env.yml
 ```
 
-### 2. Download the UniIR Checkpoints
+### 2. Download the M-BEIR Benchmark
+You need to download the M-BEIR benchmark by following the instructions in the [**M-BEIR**](#M-BEIR) section.
+
+### 3. Download the UniIR Checkpoints
 You can train the UniIR models from scratch or download the pretrained UniIR checkpoints by following the instructions in the [**Model Zoo**](#Model-Zoo) section.
 
-### 3. Scripts
+### 4. Scripts
 #### UniIR CLIP_SF
 ```bash
 cd src/models/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
 ```
 Modify `embed.yaml`, `index.yaml`, `retrieval.yaml` and `run_eval_pipeline_inbatch.sh` for your own environment, paths and evaluation settings.
 
-If you download our pretrained UniIR model, you first need to modify the ```UNIIR_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you
+#### Note:
+1. If you download our pretrained UniIR model, you first need to modify the ```UNIIR_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you
 want to store large files including the checkpoints, embeddings, index and retrieval results.
 Then you can place the ```clip_sf_large.pth``` file in the following path:
-```bash
-$UNIIR_DIR/checkpoint/CLIP_SF/Large/Instruct/InBatch/clip_sf_large.pth
-```
+    ```bash
+    $UNIIR_DIR/checkpoint/CLIP_SF/Large/Instruct/InBatch/clip_sf_large.pth
+    ```
+    This the default path specified by ```model.ckpt_config``` in the `embed.yaml` file.
+2. Modify the ```MBEIR_DATA_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the M-BEIR benchmark.
+3. Modify the ```SRC_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the source code of the project.
 
 The default configuration will evaluate the UniIR CLIP_SF Large model on  both the M-BEIR (5.6M heterogeneous candidate pool) and the M-BEIR_local (homogeneous candidate pool) benchmarks.
 ```UNION``` in the yaml files refers to the M-BEIR (5.6M heterogeneous candidate pool).
@@ -123,10 +138,10 @@ You can directly use the checkpoints for retrieval tasks or fine-tune the models
 
 ### Available Checkpoints
 
-| Model Name     | Version | Model Size | Model Link                                                                                  |
-|----------------|---------|------------|---------------------------------------------------------------------------------------------|
-| UniIR(CLIP-SF) | Large   | 5.13 GB    | [Download Link](https://huggingface.co/TIGER-Lab/UniIR/blob/main/CLIP_SF/clip_sf_large.pth) |
-| UniIR(BLIP-FF) | Large   | 7.49 GB    | [Download Link](https://huggingface.co/TIGER-Lab/UniIR/blob/main/BLIP_FF/blip_ff_large.pth) |
+| Model Name     | Version | Model Size | Model Link                                                                                             |
+|----------------|---------|------------|--------------------------------------------------------------------------------------------------------|
+| UniIR(CLIP-SF) | Large   | 5.13 GB    | [Download Link](https://huggingface.co/TIGER-Lab/UniIR/blob/main/checkpoint/CLIP_SF/clip_sf_large.pth) |
+| UniIR(BLIP-FF) | Large   | 7.49 GB    | [Download Link](https://huggingface.co/TIGER-Lab/UniIR/blob/main/checkpoint/BLIP_FF/blip_ff_large.pth) |
 
 You can download them by 
 ```
