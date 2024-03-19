@@ -46,6 +46,7 @@ The scripts will automatically download the pretrained CLIP and BLIP checkpoints
 ### 1. Environment
 #### UniIR Env
 ```bash
+git clone https://github.com/TIGER-AI-Lab/UniIR
 cd src/models/
 conda env create -f uniir_env.yml
 ```
@@ -82,9 +83,9 @@ bash run_inbatch.sh
 #### Similarly, you can train the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
 
 ## Evaluation
-We provide the evaluation pipline for the UniIR models on the M-BEIR benchmark.
+We provide the evaluation pipeline for the UniIR models on the M-BEIR benchmark.
 ### 1. Environment
-You need to create an environment for the FAISS library.
+Please create an environment for the FAISS library:
 ```bash
 # From the root directory of the project
 cd src/common/
@@ -92,10 +93,10 @@ conda env create -f faiss_env.yml
 ```
 
 ### 2. Download the M-BEIR Benchmark
-You need to download the M-BEIR benchmark by following the instructions in the [**M-BEIR**](#M-BEIR) section.
+Please download the M-BEIR benchmark by following the instructions in the [**M-BEIR**](#M-BEIR) section.
 
 ### 3. Download the UniIR Checkpoints
-You can train the UniIR models from scratch or download the pretrained UniIR checkpoints by following the instructions in the [**Model Zoo**](#Model-Zoo) section.
+You can train the UniIR models from scratch or download the pre-trained UniIR checkpoints by following the instructions in the [**Model Zoo**](#Model-Zoo) section.
 
 ### 4. Scripts
 #### To evaluate UniIR CLIP_SF Large with the default configuration:
@@ -105,7 +106,7 @@ cd src/models/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
 Modify `embed.yaml`, `index.yaml`, `retrieval.yaml` and `run_eval_pipeline_inbatch.sh` for your own environment, paths and evaluation settings.
 
 #### Note:
-1. If you download our pretrained UniIR model, you first need to modify the ```UNIIR_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you
+1. If you download our pretrained UniIR model, please modify the ```UNIIR_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you
 want to store large files including the checkpoints, embeddings, index and retrieval results.
 Then you can place the ```clip_sf_large.pth``` file in the following path:
     ```bash
