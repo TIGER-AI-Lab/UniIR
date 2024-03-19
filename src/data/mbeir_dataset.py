@@ -76,6 +76,7 @@ class MBEIRDatasetBase(Dataset):
         assert full_instructions_path.endswith(".tsv"), f"Instructions Path {full_instructions_path} is not a tsv file"
         prompts_dict = {}
         with open(full_instructions_path, "r") as f:
+            next(f) # Skip the header line
             for line in f.readlines():
                 parts = line.strip().split("\t")
                 # Construct the key to be dataset_id, query_modality, cand_modality

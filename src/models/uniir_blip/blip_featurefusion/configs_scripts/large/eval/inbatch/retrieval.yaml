@@ -12,7 +12,7 @@ retrieval_config:
     results_dir_name: "retrieval_results" # results will be saved to uniir_dir/retrieval_results/experiment.path_suffix
 
     # Relative to mbeir_data_dir
-    qrel_dir_name: "qrels/test"   # qrels will be loaded from mbeir_data_dir/qrels
+    qrel_dir_name: "qrels"   # qrels will be loaded from mbeir_data_dir/qrels
 
     write_to_tsv: True  # Write the results to csv files
 

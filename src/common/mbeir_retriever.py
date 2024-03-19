@@ -271,7 +271,7 @@ def run_retrieval(config):
             qrel_name = qrel_name.lower()
 
             # Load qrels
-            qrel_path = os.path.join(qrel_dir, f"mbeir_{qrel_name}_{split}_qrels.txt")
+            qrel_path = os.path.join(qrel_dir, split, f"mbeir_{qrel_name}_{split}_qrels.txt")
             qrel, qid_to_taskid = load_qrel(qrel_path)
 
             # Load query Hashed IDs
