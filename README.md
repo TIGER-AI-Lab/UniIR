@@ -62,6 +62,9 @@ Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your ow
 want to store the checkpoints.
 2. Modify the ```MBEIR_DATA_DIR``` in the `run_inbatch.sh` to the directory where you store the M-BEIR benchmark.
 3. Modify the ```SRC_DIR``` in the `run_inbatch.sh` to the directory where you store the source code of the project.
+4. By default, UniIR models are trained with in-batch negatives, and the hard negatives provided by the original dataset 
+are not used. So training with hard negative is not well tested.
+5. We used wandb to log the training process. Please make sure a `.env` environment with `WANDB_API_KEY`, `WANDB_PROJECT`, and `WANDB_ENTITY`  is set. 
 
 Then you can run the following command to train the UniIR CLIP_SF Large model.
 ```bash
