@@ -159,7 +159,7 @@ git clone https://huggingface.co/TIGER-Lab/UniIR
 **BibTeX:**
 ```bibtex
 @article{wei2023uniir,
-  title={UniIR: Training and Benchmarking Universal Multimodal Information Retrievers},
+  title={Uniir: Training and benchmarking universal multimodal information retrievers},
   author={Wei, Cong and Chen, Yang and Chen, Haonan and Hu, Hexiang and Zhang, Ge and Fu, Jie and Ritter, Alan and Chen, Wenhu},
   journal={arXiv preprint arXiv:2311.17136},
   year={2023}
