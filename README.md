@@ -40,11 +40,7 @@ git clone https://huggingface.co/datasets/TIGER-Lab/M-BEIR
 # UniIR Models
 We provide the codebase for training and evaluating the UniIR CLIP-ScoreFusion, CLIP-FeatureFusion, BLIP-ScoreFusion, and BLIP-FeatureFusion models.
 
-## Training
-To train the UniIR models from pretrained CLIP and BLIP checkpoints, please follow the instructions below. 
-The scripts will automatically download the pretrained CLIP and BLIP checkpoints.
-### 1. Environment
-#### UniIR Env
+## Environment
 Prepare the codebase of the UniIR project and Conda environment using the following commands:
 ```bash
 git clone https://github.com/TIGER-AI-Lab/UniIR
@@ -53,6 +49,14 @@ cd UniIR
 cd src/models/
 conda env create -f uniir_env.yml
 ```
+
+## Training
+To train the UniIR models from pretrained CLIP and BLIP checkpoints, please follow the instructions below. 
+The scripts will automatically download the pretrained CLIP and BLIP checkpoints.
+
+### 1. Download the M-BEIR Benchmark
+Please download the M-BEIR benchmark by following the instructions in the [**M-BEIR**](#M-BEIR) section.
+
 ### 2. Scripts
 #### To train UniIR CLIP_SF Large with the default configuration:
 ```bash
@@ -64,7 +68,7 @@ Modify `inbatch.yaml` for hyperparameter tuning and `run_inbatch.sh` for your ow
 1. Modify the ```UNIIR_DIR``` in the `run_inbatch.sh` to the directory where you
 want to store the checkpoints.
 2. Modify the ```MBEIR_DATA_DIR``` in the `run_inbatch.sh` to the directory where you store the M-BEIR benchmark.
-3. Modify the ```SRC_DIR``` in the `run_inbatch.sh` to the directory where you store the source code of the project.
+3. Modify the ```SRC_DIR``` in the `run_inbatch.sh` to the directory where you store the codebase of the UniIR project(This repo).
 4. By default, UniIR models are trained with in-batch negatives, and the hard negatives provided by the original dataset 
 are not used. So training with hard negative is not well tested.
 5. We used wandb to log the training process. Please make sure a `.env` environment with `WANDB_API_KEY`, `WANDB_PROJECT`, and `WANDB_ENTITY`  is set. 
@@ -117,7 +121,7 @@ Then you can place the ```clip_sf_large.pth``` file in the following path:
     ```
     This the default path specified by ```model.ckpt_config``` in the `embed.yaml` file.
 2. Modify the ```MBEIR_DATA_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the M-BEIR benchmark.
-3. Modify the ```SRC_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the source code of the project.
+3. Modify the ```SRC_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the codebase of the UniIR project(This repo).
 
 The default configuration will evaluate the UniIR CLIP_SF Large model on  both the M-BEIR (5.6M heterogeneous candidate pool) and the M-BEIR_local (homogeneous candidate pool) benchmarks.
 ```UNION``` in the yaml files refers to the M-BEIR (5.6M heterogeneous candidate pool).
