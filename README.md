@@ -108,7 +108,7 @@ You can train the UniIR models from scratch or download the pre-trained UniIR ch
 ### 4. Scripts
 #### To evaluate UniIR CLIP_SF Large with the default configuration:
 ```bash
-cd src/models/unii_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
+cd src/models/uniir_clip/clip_scorefusion/configs_scripts/large/eval/inbatch/
 ```
 Modify `embed.yaml`, `index.yaml`, `retrieval.yaml` and `run_eval_pipeline_inbatch.sh` for your own environment, paths and evaluation settings.
 
