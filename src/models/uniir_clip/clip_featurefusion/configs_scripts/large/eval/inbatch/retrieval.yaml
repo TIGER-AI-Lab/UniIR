@@ -16,6 +16,11 @@ retrieval_config:
 
     write_to_tsv: True  # Write the results to csv files
 
+    # For using retrieved candidates in downstream applications like RAG.
+    raw_retrieval: False # Store raw queries and their retrieved candidates
+    query_dir_name: # Raw queries will be loaded from mbeir_data_dir/query_dir_name
+    candidate_dir_name: # Raw retrieved candidates will be loaded from mbeir_data_dir/cand_pool/candidate_dir_name
+
     # For Retrieval Evaluation
     train_datasets_config:
         enable_retrieve: False
