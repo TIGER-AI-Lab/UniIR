@@ -36,6 +36,7 @@ import models.uniir_blip.utils as utils
 # Set up logger
 logger = logging.getLogger()
 
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -54,7 +55,9 @@ def save_checkpoint(model, optimizer, scheduler, epoch, scaler, config):
         "epoch": epoch,
         "scaler": scaler.state_dict(),
     }
-    checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, checkpoint_name)
+    checkpoint_path = os.path.join(
+        config.uniir_dir, ckpt_config.ckpt_dir, checkpoint_name
+    )
     os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
     torch.save(save_obj, checkpoint_path)
     print(f"Saved checkpoint to {checkpoint_path}")
@@ -75,10 +78,24 @@ def log_results(train_stats, val_stats, test_stats, epoch=None, best_epoch=None)
     return log_stats
 
 
-def train(train_loader, val_loader, model, model_without_ddp, optimizer, scheduler, scaler, config, epoch):
+def train(
+    train_loader,
+    val_loader,
+    model,
+    model_without_ddp,
+    optimizer,
+    scheduler,
+    scaler,
+    config,
+    epoch,
+):
     gpu_id = config.dist_config.gpu_id
     is_distributed_mode = config.dist_config.distributed_mode
-    global_step, total_loss, best_inbatch_accuracy = 0, 0.0, 0.0  #TODO: global_step is not used.
+    global_step, total_loss, best_inbatch_accuracy = (
+        0,
+        0.0,
+        0.0,
+    )  # TODO: global_step is not used.
     best_epoch = 0
     model.zero_grad()
 
@@ -90,24 +107,40 @@ def train(train_loader, val_loader, model, model_without_ddp, optimizer, schedul
             train_loader.sampler.set_epoch(epoch)
 
         train_stats = train_one_epoch(
-            model, train_loader, optimizer, epoch, gpu_id, scheduler, global_step, scaler, config
+            model,
+            train_loader,
+            optimizer,
+            epoch,
+            gpu_id,
+            scheduler,
+            global_step,
+            scaler,
+            config,
         )
 
         eval_freq = config.evaluator.eval_freq
         if val_loader is None or epoch % eval_freq != 0:
             log_stats = log_results(train_stats, None, None, epoch, best_epoch)
             if utils.is_main_process():
-                save_checkpoint(model_without_ddp, optimizer, scheduler, epoch, scaler, config)
+                save_checkpoint(
+                    model_without_ddp, optimizer, scheduler, epoch, scaler, config
+                )
         else:
-            val_status = eval_engine(model_without_ddp, model, val_loader, gpu_id, config)
+            val_status = eval_engine(
+                model_without_ddp, model, val_loader, gpu_id, config
+            )
             try:
                 inbatch_accuracy = float(val_status["inbatch_accuracy"])
             except ValueError:
-                print(f"Error: Expected a number but got '{val_status['inbatch_accuracy']}'")
+                print(
+                    f"Error: Expected a number but got '{val_status['inbatch_accuracy']}'"
+                )
                 inbatch_accuracy = 100.0
             # Note: still save the model even if the in-batch accuracy is not the best
             if utils.is_main_process():
-                save_checkpoint(model_without_ddp, optimizer, scheduler, epoch, scaler, config)
+                save_checkpoint(
+                    model_without_ddp, optimizer, scheduler, epoch, scaler, config
+                )
             if inbatch_accuracy >= best_inbatch_accuracy:
                 # if utils.is_main_process():
                 #     save_checkpoint(model_without_ddp, optimizer, scheduler, epoch, scaler, config)
@@ -170,14 +203,18 @@ def main(config):
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
         lr=trainer_config.init_lr,
-        weight_decay=trainer_config.weight_decay
+        weight_decay=trainer_config.weight_decay,
     )
     scaler = GradScaler()  # Initialize the GradScaler
 
     # If resume training, load the checkpoint
     if ckpt_config.resume_training:
-        checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name)
-        assert os.path.exists(checkpoint_path), f"Checkpoint file {checkpoint_path} does not exist."
+        checkpoint_path = os.path.join(
+            config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name
+        )
+        assert os.path.exists(
+            checkpoint_path
+        ), f"Checkpoint file {checkpoint_path} does not exist."
         logger.info(f"loading {config.model.name} checkpoint from {checkpoint_path}")
         model, msg = load_checkpoint(model, checkpoint_path)
         print("missing keys:")
@@ -195,8 +232,12 @@ def main(config):
         model_without_ddp = model.module
 
     # Prepare datasets and dataloaders
-    logger.info("Preparing dataset ...")  # Note printing only available in the main process
-    logger.info(f"Loading dataset from {config.mbeir_data_dir}{config.data_config.train_query_data_path}...")
+    logger.info(
+        "Preparing dataset ..."
+    )  # Note printing only available in the main process
+    logger.info(
+        f"Loading dataset from {config.mbeir_data_dir}{config.data_config.train_query_data_path}..."
+    )
 
     img_preprocess_fn = model_without_ddp.get_img_preprocess_fn()
     tokenizer = model_without_ddp.get_tokenizer()
@@ -255,7 +296,9 @@ def main(config):
 
     # Initializing the scheduler
     t_total = (
-        len(train_loader) // config.trainer_config.gradient_accumulation_steps * config.trainer_config.num_train_epochs
+        len(train_loader)
+        // config.trainer_config.gradient_accumulation_steps
+        * config.trainer_config.num_train_epochs
     )
     scheduler = CosineAnnealingLR(optimizer, T_max=t_total, eta_min=0)
 
@@ -266,12 +309,24 @@ def main(config):
 
     # Training loop
     dist.barrier()
-    train(train_loader, valid_loader, model, model_without_ddp, optimizer, scheduler, scaler, config, epoch)
+    train(
+        train_loader,
+        valid_loader,
+        model,
+        model_without_ddp,
+        optimizer,
+        scheduler,
+        scaler,
+        config,
+        epoch,
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_path", default="config.yaml", help="Path to the config file.")
+    parser.add_argument(
+        "--config_path", default="config.yaml", help="Path to the config file."
+    )
     parser.add_argument(
         "--uniir_dir",
         type=str,
@@ -279,7 +334,10 @@ if __name__ == "__main__":
         help="Path to mbeir directory to save checkpoints, embeddings, etc.",
     )
     parser.add_argument(
-        "--mbeir_data_dir", type=str, default="/data/UniIR/mbeir_data", help="Path to mbeir dataset directory"
+        "--mbeir_data_dir",
+        type=str,
+        default="/data/UniIR/mbeir_data",
+        help="Path to mbeir dataset directory",
     )
     args = parser.parse_args()
     print(f"Loading config from {args.config_path}")
@@ -290,7 +348,9 @@ if __name__ == "__main__":
     config.mbeir_data_dir = args.mbeir_data_dir
 
     # Initialize distributed training
-    args.dist_url = config.dist_config.dist_url  # Note: The use of args is a historical artifact :(
+    args.dist_url = (
+        config.dist_config.dist_url
+    )  # Note: The use of args is a historical artifact :(
     utils.init_distributed_mode(args)
     config.dist_config.gpu_id = args.gpu
     config.dist_config.distributed_mode = args.distributed
@@ -303,7 +363,9 @@ if __name__ == "__main__":
         wandb_entity = os.environ.get("WANDB_ENTITY")
 
         if not wandb_key:
-            raise ValueError("WANDB_API_KEY not found. Ensure it's set in the .env file.")
+            raise ValueError(
+                "WANDB_API_KEY not found. Ensure it's set in the .env file."
+            )
 
         wandb.login(key=wandb_key)
         wandb.init(
@@ -315,8 +377,12 @@ if __name__ == "__main__":
 
     # Set up logger
     if utils.is_main_process():
-        logger_out_dir = os.path.join(config.uniir_dir, config.logger_config.logger_out_dir)
-        logger_out_path = os.path.join(logger_out_dir, config.logger_config.logger_out_file_name)
+        logger_out_dir = os.path.join(
+            config.uniir_dir, config.logger_config.logger_out_dir
+        )
+        logger_out_path = os.path.join(
+            logger_out_dir, config.logger_config.logger_out_file_name
+        )
         if not os.path.exists(logger_out_dir):
             os.makedirs(logger_out_dir, exist_ok=True)
         handlers = [logging.FileHandler(logger_out_path), logging.StreamHandler()]
