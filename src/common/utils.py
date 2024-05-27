@@ -4,8 +4,10 @@ Utility functions for retrieval experiments on MBEIR.
 
 # Standard Library imports
 import os
+import random
 
 # Third-party imports
+import numpy as np
 import torch
 
 
@@ -15,14 +17,18 @@ def load_qrel(filename):
     with open(filename, "r") as f:
         for line in f:
             query_id, _, doc_id, relevance_score, task_id = line.strip().split()
-            if int(relevance_score) > 0:  # Assuming only positive relevance scores indicate relevant documents
+            if (
+                int(relevance_score) > 0
+            ):  # Assuming only positive relevance scores indicate relevant documents
                 if query_id not in qrel:
                     qrel[query_id] = []
                 qrel[query_id].append(doc_id)
                 if query_id not in qid_to_taskid:
                     qid_to_taskid[query_id] = task_id
     print(f"Loaded {len(qrel)} queries from {filename}")
-    print(f"Average number of relevant documents per query: {sum(len(v) for v in qrel.values()) / len(qrel):.2f}")
+    print(
+        f"Average number of relevant documents per query: {sum(len(v) for v in qrel.values()) / len(qrel):.2f}"
+    )
     return qrel, qid_to_taskid
 
 
@@ -79,8 +85,12 @@ def build_model_from_config(config):
 
         # Load model from checkpoint
         ckpt_config = model_config.ckpt_config
-        checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name)
-        assert os.path.exists(checkpoint_path), f"Checkpoint file {checkpoint_path} does not exist."
+        checkpoint_path = os.path.join(
+            config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name
+        )
+        assert os.path.exists(
+            checkpoint_path
+        ), f"Checkpoint file {checkpoint_path} does not exist."
         print(f"loading CLIPScoreFusion checkpoint from {checkpoint_path}")
         model.load_state_dict(torch.load(checkpoint_path)["model"])
 
@@ -101,16 +111,23 @@ def build_model_from_config(config):
 
         # Load model from checkpoint
         ckpt_config = model_config.ckpt_config
-        checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name)
-        assert os.path.exists(checkpoint_path), f"Checkpoint file {checkpoint_path} does not exist."
+        checkpoint_path = os.path.join(
+            config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name
+        )
+        assert os.path.exists(
+            checkpoint_path
+        ), f"Checkpoint file {checkpoint_path} does not exist."
         print(f"loading CLIPFeatureFusion checkpoint from {checkpoint_path}")
         model.load_state_dict(torch.load(checkpoint_path)["model"])
 
     elif model_name == "BLIPScoreFusion":
         from models.uniir_blip.blip_scorefusion.blip_sf import BLIPScoreFusion
+
         model_config = config.model
         model = BLIPScoreFusion(
-            med_config=os.path.join("../models/uniir_blip", "backbone/configs/med_config.json"),
+            med_config=os.path.join(
+                "../models/uniir_blip", "backbone/configs/med_config.json"
+            ),
             image_size=model_config.image_size,
             vit=model_config.vit,
             vit_grad_ckpt=model_config.vit_grad_ckpt,
@@ -120,16 +137,23 @@ def build_model_from_config(config):
             config=model_config,
         )
         ckpt_config = model_config.ckpt_config
-        checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name)
-        assert os.path.exists(checkpoint_path), f"Checkpoint file {checkpoint_path} does not exist."
+        checkpoint_path = os.path.join(
+            config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name
+        )
+        assert os.path.exists(
+            checkpoint_path
+        ), f"Checkpoint file {checkpoint_path} does not exist."
         print(f"loading BLIPScoreFusion checkpoint from {checkpoint_path}")
         model.load_state_dict(torch.load(checkpoint_path)["model"])
 
     elif model_name == "BLIPFeatureFusion":
         from models.uniir_blip.blip_featurefusion.blip_ff import BLIPFeatureFusion
+
         model_config = config.model
         model = BLIPFeatureFusion(
-            med_config=os.path.join("../models/uniir_blip", "backbone/configs/med_config.json"),
+            med_config=os.path.join(
+                "../models/uniir_blip", "backbone/configs/med_config.json"
+            ),
             image_size=model_config.image_size,
             vit=model_config.vit,
             vit_grad_ckpt=model_config.vit_grad_ckpt,
@@ -139,11 +163,23 @@ def build_model_from_config(config):
             config=model_config,
         )
         ckpt_config = model_config.ckpt_config
-        checkpoint_path = os.path.join(config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name)
-        assert os.path.exists(checkpoint_path), f"Checkpoint file {checkpoint_path} does not exist."
+        checkpoint_path = os.path.join(
+            config.uniir_dir, ckpt_config.ckpt_dir, ckpt_config.ckpt_name
+        )
+        assert os.path.exists(
+            checkpoint_path
+        ), f"Checkpoint file {checkpoint_path} does not exist."
         print(f"loading BLIPFeatureFusion checkpoint from {checkpoint_path}")
         model.load_state_dict(torch.load(checkpoint_path)["model"])
     else:
         raise NotImplementedError(f"Model {model_name} is not implemented.")
         # Notes: Add other models here
     return model
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)

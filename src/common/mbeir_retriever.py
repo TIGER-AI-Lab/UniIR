@@ -448,16 +448,11 @@ def run_retrieval(config):
                 exp_retrieved_cands_dir, retrieved_file_name
             )
             with open(retrieved_file_path, "w") as run_file:
-                for idx, (distances, indices) in enumerate(
-                    zip(retrieved_cand_dist, retrieved_indices)
-                ):
+                for idx, indices in enumerate(retrieved_indices):
                     retrieved_cands = []
                     qid = unhash_qid(hashed_query_ids[idx])
                     query = qid_to_queries[qid]
-                    task_id = qid_to_taskid[qid]
-                    for rank, (hashed_doc_id, score) in enumerate(
-                        zip(indices, distances), start=1
-                    ):
+                    for hashed_doc_id in indices:
                         doc_id = unhash_did(hashed_doc_id)
                         retrieved_cands.append(did_to_candidates[doc_id])
                     json.dump(
