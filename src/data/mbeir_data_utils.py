@@ -66,13 +66,9 @@ def build_mbeir_dataset_from_config(config, img_preprocess_fn, tokenizer, datase
     return dataset, collector
 
 
-def build_distributed_sampler_list(
-    dataset_list, shuffle_list, num_tasks_list, global_rank_list
-):
+def build_distributed_sampler_list(dataset_list, shuffle_list, num_tasks_list, global_rank_list):
     samplers = []
-    for dataset, shuffle, num_tasks, global_rank in zip(
-        dataset_list, shuffle_list, num_tasks_list, global_rank_list
-    ):
+    for dataset, shuffle, num_tasks, global_rank in zip(dataset_list, shuffle_list, num_tasks_list, global_rank_list):
         sampler = torch.utils.data.DistributedSampler(
             dataset, num_replicas=num_tasks, rank=global_rank, shuffle=shuffle
         )
@@ -80,9 +76,7 @@ def build_distributed_sampler_list(
     return samplers
 
 
-def build_dataloader_list(
-    datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns
-):
+def build_dataloader_list(datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns):
     loaders = []
     for dataset, sampler, bs, n_worker, is_train, collate_fn in zip(
         datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns

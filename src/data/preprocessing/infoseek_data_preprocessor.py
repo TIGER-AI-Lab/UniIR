@@ -73,9 +73,7 @@ def update_mbeir_format_infoseek_data_with_cand_pool(
                     can_dict[doc_key].append(entry)
         return can_dict
 
-    cand_pool_dict = load_infoseek_mbeir_format_cand_pool_with_split_content_as_dict(
-        cand_pool_file_path
-    )
+    cand_pool_dict = load_infoseek_mbeir_format_cand_pool_with_split_content_as_dict(cand_pool_file_path)
 
     mbeir_entries = []
     for infoseek_data_entry in mbeir_format_infoseek_data:
@@ -84,9 +82,7 @@ def update_mbeir_format_infoseek_data_with_cand_pool(
         answer = query_src_content["answer"]
         answer_eval = query_src_content["answer_eval"]
         potential_candidates = cand_pool_dict.get(entity_id, None)
-        assert (
-            potential_candidates is not None
-        ), f"Missing candidates for entity_id {entity_id}"
+        assert potential_candidates is not None, f"Missing candidates for entity_id {entity_id}"
         for potential_candidate in potential_candidates:
             wiki_string = potential_candidate["txt"]
             if contains_answer(wiki_string, answer, answer_eval):
@@ -111,9 +107,7 @@ def convert_raw_infoseek_cand_pool_to_mbeir_format_and_split_content(
     include_src_content=True,
     skip_set=None,  # Used for augmenting the candidate pool
 ):
-    assert raw_cand_pool_file_path.endswith(
-        ".jsonl"
-    ), f"Data Path {raw_cand_pool_file_path} is not a jsonl file"
+    assert raw_cand_pool_file_path.endswith(".jsonl"), f"Data Path {raw_cand_pool_file_path} is not a jsonl file"
     raw_infoseek_cand_list = load_jsonl_as_list(raw_cand_pool_file_path)
     output = []
     document_id = 1
@@ -127,21 +121,13 @@ def convert_raw_infoseek_cand_pool_to_mbeir_format_and_split_content(
         wikidata_id = raw_infoseek_cand["wikidata_id"]
         if skip_set and wikidata_id in skip_set:
             continue  # Skip if the wikidata_id is in the skip set
-        if raw_infoseek_cand.get(
-            "wikipedia_image_url", None
-        ):  # Check if the candidate has an image
+        if raw_infoseek_cand.get("wikipedia_image_url", None):  # Check if the candidate has an image
             modality = INFOSEEK_CANDIDATE_MODALITY_IMAGE_TEXT
-            oven_wiki_images_dir = os.path.join(
-                "mbeir_images", "oven_images", "wikipedia_images_full"
-            )
-            img_dir = os.path.join(
-                oven_wiki_images_dir, get_directory_for_id(wikidata_id)
-            )
+            oven_wiki_images_dir = os.path.join("mbeir_images", "oven_images", "wikipedia_images_full")
+            img_dir = os.path.join(oven_wiki_images_dir, get_directory_for_id(wikidata_id))
             img_path = os.path.join(img_dir, f"{wikidata_id}.jpg")
             if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
-                print(
-                    f"Warning: Invalid image {img_path} for wikidata_id {wikidata_id}"
-                )
+                print(f"Warning: Invalid image {img_path} for wikidata_id {wikidata_id}")
                 modality = INFOSEEK_CANDIDATE_MODALITY_TEXT  # Set modality to text if the image is invalid
                 img_path = None
         else:
@@ -247,13 +233,9 @@ def infoseek_to_mbeir_entry_and_create_raw_cand_pool(
     # Query image is stored in the same directory as the OVEN dataset
     img_subdir = infoseek_entry["image_id"][-8:-6]
     img_filename = f"{infoseek_entry['image_id']}.jpg"
-    query_img_path = os.path.join(
-        "mbeir_images", "oven_images", img_subdir, img_filename
-    )
+    query_img_path = os.path.join("mbeir_images", "oven_images", img_subdir, img_filename)
     if not is_valid_image(os.path.join(mbeir_data_dir, query_img_path)):
-        print(
-            f"Warning: Invalid image {query_img_path} for oven entry {infoseek_entry}"
-        )
+        print(f"Warning: Invalid image {query_img_path} for oven entry {infoseek_entry}")
         return None  # Skip if the image is invalid
     mbeir_entry["query_img_path"] = query_img_path
 
@@ -274,12 +256,8 @@ def infoseek_to_mbeir_entry_and_create_raw_cand_pool(
             "entity_id": entity_id,
         }
         if qtype_dict:
-            query_src_content["question_type"] = qtype_dict.get(
-                infoseek_entry["data_id"], None
-            )
-            assert (
-                query_src_content["question_type"] is not None
-            ), "Question type is missing!"
+            query_src_content["question_type"] = qtype_dict.get(infoseek_entry["data_id"], None)
+            assert query_src_content["question_type"] is not None, "Question type is missing!"
         mbeir_entry["query_src_content"] = json.dumps(query_src_content)
 
     # Positive candidate
@@ -354,9 +332,7 @@ def infoseek_to_mbeir_and_create_raw_cand_pool(
         Load the Wiki6M_ver_1_0.jsonl file into a dictionary.
         """
         kb_dict = {}
-        assert oven_wiki6m_file_path.endswith(
-            ".jsonl"
-        ), "Only JSONL files are supported."
+        assert oven_wiki6m_file_path.endswith(".jsonl"), "Only JSONL files are supported."
         with open(oven_wiki6m_file_path, "r") as f:
             for line in f:
                 entry = json.loads(line.strip())
@@ -408,16 +384,8 @@ def compute_wiki6m_statistics(file_path):
         for line in f:
             entry = json.loads(line.strip())
 
-            summary_length = (
-                len(entry["wikipedia_summary"].split())
-                if "wikipedia_summary" in entry
-                else 0
-            )
-            content_length = (
-                len(entry["wikipedia_content"].split())
-                if "wikipedia_content" in entry
-                else 0
-            )
+            summary_length = len(entry["wikipedia_summary"].split()) if "wikipedia_summary" in entry else 0
+            content_length = len(entry["wikipedia_content"].split()) if "wikipedia_content" in entry else 0
 
             total_summary_length += summary_length
             total_content_length += content_length
@@ -446,9 +414,7 @@ def compute_wiki6m_statistics(file_path):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Refactor Infoseek dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Refactor Infoseek dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -529,26 +495,16 @@ def main():
     oven_dir = os.path.join(args.mbeir_data_dir, args.oven_dir)
     infoseek_images_dir = os.path.join(args.mbeir_data_dir, args.infoseek_images_dir)
     infoseek_data_dir = os.path.join(oven_dir, "infoseek_data")
-    infoseek_raw_cand_pool_file_path = os.path.join(
-        oven_dir, "mbeir_infoseek_raw_cand_pool.jsonl"
-    )
-    infoseek_cand_pool_file_path = os.path.join(
-        oven_dir, "mbeir_infoseek_cand_pool.jsonl"
-    )
+    infoseek_raw_cand_pool_file_path = os.path.join(oven_dir, "mbeir_infoseek_raw_cand_pool.jsonl")
+    infoseek_cand_pool_file_path = os.path.join(oven_dir, "mbeir_infoseek_cand_pool.jsonl")
 
     oven_wiki6m_file_path = os.path.join(oven_dir, "Wiki6M_ver_1_0.jsonl")
 
     infoseek_train_file_path = os.path.join(infoseek_data_dir, "infoseek_train.jsonl")
-    infoseek_train_withkb_file_path = os.path.join(
-        infoseek_data_dir, "infoseek_train_withkb.jsonl"
-    )
+    infoseek_train_withkb_file_path = os.path.join(infoseek_data_dir, "infoseek_train_withkb.jsonl")
     infoseek_val_file_path = os.path.join(infoseek_data_dir, "infoseek_val.jsonl")
-    infoseek_val_withkb_file_path = os.path.join(
-        infoseek_data_dir, "infoseek_val_withkb.jsonl"
-    )
-    infoseek_val_qtype_file_path = os.path.join(
-        infoseek_data_dir, "infoseek_val_qtype.jsonl"
-    )
+    infoseek_val_withkb_file_path = os.path.join(infoseek_data_dir, "infoseek_val_withkb.jsonl")
+    infoseek_val_qtype_file_path = os.path.join(infoseek_data_dir, "infoseek_val_qtype.jsonl")
 
     if args.print_wiki6m_stats:
         print("Printing statistics of the Wiki6M_ver_1_0.jsonl file...")
@@ -572,9 +528,7 @@ def main():
         with open(infoseek_raw_cand_pool_file_path, "w") as f:
             pass
         for split, data_paths in data_set_dict.items():
-            mbeir_format_infoseek_data_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_{split}.jsonl"
-            )
+            mbeir_format_infoseek_data_path = os.path.join(oven_dir, f"mbeir_infoseek_{split}.jsonl")
             infoseek_file_path = data_paths[0]
             infoseek_withkb_file_path = data_paths[1]
             infoseek_qtype_file_path = data_paths[2] if len(data_paths) > 2 else None
@@ -591,15 +545,9 @@ def main():
             save_list_as_jsonl(mbeir_entries, mbeir_format_infoseek_data_path, mode="w")
 
             # Print statistics
-            total_entries, _data = count_entries_in_file(
-                mbeir_format_infoseek_data_path
-            )
-            print(
-                f"MBEIR format nights {split} data saved to {mbeir_format_infoseek_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_infoseek_data_path}: {total_entries}"
-            )
+            total_entries, _data = count_entries_in_file(mbeir_format_infoseek_data_path)
+            print(f"MBEIR format nights {split} data saved to {mbeir_format_infoseek_data_path}")
+            print(f"Total number of entries in {mbeir_format_infoseek_data_path}: {total_entries}")
             # print_mbeir_format_dataset_stats(_data)
 
         # Clean duplicates in the raw candidate pool
@@ -614,35 +562,25 @@ def main():
         infoseek_raw_cand_pool = list(infoseek_raw_cand_set.values())
 
         # Save the raw candidate pool
-        save_list_as_jsonl(
-            infoseek_raw_cand_pool, infoseek_raw_cand_pool_file_path, mode="w"
-        )
+        save_list_as_jsonl(infoseek_raw_cand_pool, infoseek_raw_cand_pool_file_path, mode="w")
         print(f"len(infoseek_cand_pool): {len(infoseek_raw_cand_pool)}")
-        print(
-            f"infoseek format candidate pool saved to {infoseek_raw_cand_pool_file_path}"
-        )
+        print(f"infoseek format candidate pool saved to {infoseek_raw_cand_pool_file_path}")
 
     # Convert Infoseek data to MBEIR format Phase 2
     if args.enable_cand_pool_and_to_mbeir_format_ph2:
         # Convert the raw candidate pool to MBEIR format and split the Wikipedia content into multiple strings
-        cand_pool_entries = (
-            convert_raw_infoseek_cand_pool_to_mbeir_format_and_split_content(
-                infoseek_raw_cand_pool_file_path,
-                args.mbeir_data_dir,
-                include_src_content=True,
-            )
+        cand_pool_entries = convert_raw_infoseek_cand_pool_to_mbeir_format_and_split_content(
+            infoseek_raw_cand_pool_file_path,
+            args.mbeir_data_dir,
+            include_src_content=True,
         )
         save_list_as_jsonl(cand_pool_entries, infoseek_cand_pool_file_path, mode="w")
         print(f"len(infoseek_cand_pool): {len(cand_pool_entries)}")
-        print(
-            f"MBEIR format candidate pool with content splitting saved to {infoseek_cand_pool_file_path}"
-        )
+        print(f"MBEIR format candidate pool with content splitting saved to {infoseek_cand_pool_file_path}")
         print_mbeir_format_cand_pool_stats(infoseek_cand_pool_file_path)
 
         # Trim training queries
-        def load_mbeir_format_infoseek_pool_file_as_dict(
-            pool_file_path, doc_key_to_content=False
-        ):
+        def load_mbeir_format_infoseek_pool_file_as_dict(pool_file_path, doc_key_to_content=False):
             pool_dict = {}
             assert pool_file_path.endswith(".jsonl"), "Only JSONL files are supported."
 
@@ -665,11 +603,7 @@ def main():
             for item in data:
                 query_src_content = json.loads(item["query_src_content"])
                 entity_id = query_src_content["entity_id"]
-                modality = (
-                    candidate_pool[entity_id]["modality"]
-                    if entity_id in candidate_pool
-                    else None
-                )
+                modality = candidate_pool[entity_id]["modality"] if entity_id in candidate_pool else None
 
                 if entity_id not in entity_counts:
                     entity_counts[entity_id] = []
@@ -680,9 +614,7 @@ def main():
                 if modality:
                     if entity_id not in modality_counts[modality]:
                         modality_counts[modality][entity_id] = []
-                    modality_counts[modality][entity_id].append(
-                        query_src_content["data_id"]
-                    )
+                    modality_counts[modality][entity_id].append(query_src_content["data_id"])
 
             # Calculate and print general statistics
             counts = [len(data_ids) for _, data_ids in entity_counts.items()]
@@ -720,17 +652,11 @@ def main():
                     data = [json.loads(line) for line in f]
 
                     # Print statistics before trimming
-                    print_candidate_to_query_statistics(
-                        data, candidate_pool, description=data_path
-                    )
+                    print_candidate_to_query_statistics(data, candidate_pool, description=data_path)
                     for entry in data:
                         query_src_content = json.loads(entry["query_src_content"])
                         entity_id = query_src_content["entity_id"]
-                        modality = (
-                            candidate_pool[entity_id]["modality"]
-                            if entity_id in candidate_pool
-                            else None
-                        )
+                        modality = candidate_pool[entity_id]["modality"] if entity_id in candidate_pool else None
                         if entity_id not in entity_to_query_mapping:
                             entity_to_query_mapping[entity_id] = {
                                 "queries": [],
@@ -738,14 +664,8 @@ def main():
                             }
                         entity_to_query_mapping[entity_id]["queries"].append(entry)
 
-            all_queries = [
-                query
-                for entry in entity_to_query_mapping.values()
-                for query in entry["queries"]
-            ]
-            print_candidate_to_query_statistics(
-                all_queries, candidate_pool, description="before trimming"
-            )
+            all_queries = [query for entry in entity_to_query_mapping.values() for query in entry["queries"]]
+            print_candidate_to_query_statistics(all_queries, candidate_pool, description="before trimming")
             return entity_to_query_mapping
 
         def trim_queries(entity_to_query_mapping, text_threshold, image_text_threshold):
@@ -755,9 +675,7 @@ def main():
                 modality = entry["modality"]
 
                 # Determine the threshold based on modality
-                threshold = (
-                    image_text_threshold if modality == "image,text" else text_threshold
-                )
+                threshold = image_text_threshold if modality == "image,text" else text_threshold
 
                 random.shuffle(query_list)
                 if len(query_list) <= threshold:
@@ -772,9 +690,7 @@ def main():
             trimmed_data_files,
             candidate_pool,
         ):
-            for data_path, trimmed_data_path in zip(
-                original_data_files, trimmed_data_files
-            ):
+            for data_path, trimmed_data_path in zip(original_data_files, trimmed_data_files):
                 trimmed_data = []
                 with open(data_path, "r") as f:
                     original_data = [json.loads(line) for line in f]
@@ -790,19 +706,13 @@ def main():
 
                 save_list_as_jsonl(trimmed_data, trimmed_data_path, mode="w")
                 print(f"\nTrimmed data saved to {trimmed_data_path}")
-                print_candidate_to_query_statistics(
-                    trimmed_data, candidate_pool, description=trimmed_data_path
-                )
+                print_candidate_to_query_statistics(trimmed_data, candidate_pool, description=trimmed_data_path)
 
         candidate_pool_dict = load_mbeir_format_infoseek_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True
         )
-        mbier_format_infoseek_train_file_path = os.path.join(
-            oven_dir, "mbeir_infoseek_train.jsonl"
-        )
-        trimmed_mbeir_format_infoseek_data_path = os.path.join(
-            oven_dir, "mbeir_infoseek_train_trimmed.jsonl"
-        )
+        mbier_format_infoseek_train_file_path = os.path.join(oven_dir, "mbeir_infoseek_train.jsonl")
+        trimmed_mbeir_format_infoseek_data_path = os.path.join(oven_dir, "mbeir_infoseek_train_trimmed.jsonl")
         entity_to_query_mapping = get_entity_to_query_mapping(
             [mbier_format_infoseek_train_file_path], candidate_pool_dict
         )
@@ -823,9 +733,7 @@ def main():
                 data_path,
                 infoseek_cand_pool_file_path,
             )
-            data_path_final = os.path.join(
-                oven_dir, f"mbeir_infoseek_{split}_final.jsonl"
-            )
+            data_path_final = os.path.join(oven_dir, f"mbeir_infoseek_{split}_final.jsonl")
             save_list_as_jsonl(mbeir_entries, data_path_final, mode="w")
 
             # Print statistics
@@ -852,9 +760,7 @@ def main():
                     pool_set.add(doc_key)
             return pool_set
 
-        skip_pool_set = load_mbeir_format_infoseek_pool_file_as_set(
-            infoseek_cand_pool_file_path
-        )
+        skip_pool_set = load_mbeir_format_infoseek_pool_file_as_set(infoseek_cand_pool_file_path)
 
         # document_id_start set to the last document id in the candidate pool
         def count_lines_in_file(file_path):
@@ -876,9 +782,9 @@ def main():
         # Random sample 1M candidates
         random.shuffle(oven_wiki6m_mbeir_format_pool_with_split_content)
         augment_size = 1000000
-        oven_wiki6m_mbeir_format_pool_with_split_content = (
-            oven_wiki6m_mbeir_format_pool_with_split_content[:augment_size]
-        )
+        oven_wiki6m_mbeir_format_pool_with_split_content = oven_wiki6m_mbeir_format_pool_with_split_content[
+            :augment_size
+        ]
 
         # Reassign document ids
         for i, entry in enumerate(oven_wiki6m_mbeir_format_pool_with_split_content):
@@ -896,12 +802,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        infoseek_train_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_infoseek_train_cand_pool.jsonl"
-        )
-        mbeir_format_infoseek_train_data_path = os.path.join(
-            oven_dir, f"mbeir_infoseek_train_final.jsonl"
-        )
+        infoseek_train_candidate_pool_path = os.path.join(oven_dir, "mbeir_infoseek_train_cand_pool.jsonl")
+        mbeir_format_infoseek_train_data_path = os.path.join(oven_dir, f"mbeir_infoseek_train_final.jsonl")
         assert os.path.exists(
             mbeir_format_infoseek_train_data_path
         ), f"File {mbeir_format_infoseek_train_data_path} does not exist"
@@ -911,9 +813,7 @@ def main():
         infoseek_cand_pool = load_mbeir_format_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_infoseek_train_data = load_jsonl_as_list(
-            mbeir_format_infoseek_train_data_path
-        )
+        mbeir_format_infoseek_train_data = load_jsonl_as_list(mbeir_format_infoseek_train_data_path)
         for entry in mbeir_format_infoseek_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -927,30 +827,18 @@ def main():
                         )
 
         # Save the training candidate pool
-        infoseek_train_candidate_pool_list = list(
-            infoseek_train_candidate_pool.values()
-        )
-        infoseek_train_candidate_pool_list.sort(
-            key=lambda x: int(x["did"].split(":")[1])
-        )
-        save_list_as_jsonl(
-            infoseek_train_candidate_pool_list, infoseek_train_candidate_pool_path
-        )
+        infoseek_train_candidate_pool_list = list(infoseek_train_candidate_pool.values())
+        infoseek_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
+        save_list_as_jsonl(infoseek_train_candidate_pool_list, infoseek_train_candidate_pool_path)
         print(f"Saved training candidate pool to {infoseek_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(infoseek_train_candidate_pool_path)
 
     # Save the training candidate pool in MBEIR format
     if args.assign_did_from_oven_cand_pool:
         # Assign infoseek did to the oven data
-        print(
-            "Assigning positive candidates from oven candidate pool to infoseek queries..."
-        )
-        oven_1m_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_1m_cand_pool.jsonl"
-        )
-        oven_train_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_train_cand_pool.jsonl"
-        )
+        print("Assigning positive candidates from oven candidate pool to infoseek queries...")
+        oven_1m_candidate_pool_path = os.path.join(oven_dir, "mbeir_oven_1m_cand_pool.jsonl")
+        oven_train_candidate_pool_path = os.path.join(oven_dir, "mbeir_oven_train_cand_pool.jsonl")
 
         infoseek_cand_dict = load_mbeir_format_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True, key_type="did"
@@ -959,12 +847,8 @@ def main():
             ("train", oven_train_candidate_pool_path),
             ("val", oven_1m_candidate_pool_path),
         ]:
-            oven_cand_pool = load_mbeir_format_pool_file_as_dict(
-                oven_cand_pool_path, key_type="mbeir_converted_key"
-            )
-            mbeir_format_infoseek_data_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_{split}_final.jsonl"
-            )
+            oven_cand_pool = load_mbeir_format_pool_file_as_dict(oven_cand_pool_path, key_type="mbeir_converted_key")
+            mbeir_format_infoseek_data_path = os.path.join(oven_dir, f"mbeir_infoseek_{split}_final.jsonl")
             infoseek_data = load_jsonl_as_list(mbeir_format_infoseek_data_path)
             for infoseek_entry in infoseek_data:
                 oven_dids = []
@@ -976,23 +860,13 @@ def main():
                         oven_dids.append(oven_cand_did)
                 infoseek_entry["pos_cand_list"].extend(oven_dids)
 
-            mbeir_format_infoseek_data_merged_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_{split}_merged.jsonl"
-            )
-            save_list_as_jsonl(
-                infoseek_data, mbeir_format_infoseek_data_merged_path, mode="w"
-            )
+            mbeir_format_infoseek_data_merged_path = os.path.join(oven_dir, f"mbeir_infoseek_{split}_merged.jsonl")
+            save_list_as_jsonl(infoseek_data, mbeir_format_infoseek_data_merged_path, mode="w")
 
             # Print statistics
-            total_entries, data = count_entries_in_file(
-                mbeir_format_infoseek_data_merged_path
-            )
-            print(
-                f"MBEIR format Infoseek {split} data saved to {mbeir_format_infoseek_data_merged_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_infoseek_data_merged_path}: {total_entries}"
-            )
+            total_entries, data = count_entries_in_file(mbeir_format_infoseek_data_merged_path)
+            print(f"MBEIR format Infoseek {split} data saved to {mbeir_format_infoseek_data_merged_path}")
+            print(f"Total number of entries in {mbeir_format_infoseek_data_merged_path}: {total_entries}")
 
             # Build combined pool
             oven_cand_pool = load_mbeir_format_pool_file_as_dict(
@@ -1003,49 +877,29 @@ def main():
 
     # Split val set into val and test
     if args.split_val_into_val_and_test:
-        mbeir_infoseek_val_data_path = os.path.join(
-            oven_dir, "mbeir_infoseek_val_merged.jsonl"
-        )
-        print(
-            f"Splitting {mbeir_infoseek_val_data_path} into validation and test sets..."
-        )
+        mbeir_infoseek_val_data_path = os.path.join(oven_dir, "mbeir_infoseek_val_merged.jsonl")
+        print(f"Splitting {mbeir_infoseek_val_data_path} into validation and test sets...")
         mbeir_infoseek_val_data = load_jsonl_as_list(mbeir_infoseek_val_data_path)
         random.seed(2023)
         random.shuffle(mbeir_infoseek_val_data)
-        new_infoseek_val_data = mbeir_infoseek_val_data[
-            : len(mbeir_infoseek_val_data) // 2
-        ]
-        new_infoseek_test_data = mbeir_infoseek_val_data[
-            len(mbeir_infoseek_val_data) // 2 :
-        ]
-        mbeir_infoseek_new_val_data_path = os.path.join(
-            oven_dir, "mbeir_infoseek_new_val.jsonl"
-        )
-        mbeir_infoseek_new_test_data_path = os.path.join(
-            oven_dir, "mbeir_infoseek_new_test.jsonl"
-        )
-        oven_1m_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_1m_cand_pool.jsonl"
-        )
+        new_infoseek_val_data = mbeir_infoseek_val_data[: len(mbeir_infoseek_val_data) // 2]
+        new_infoseek_test_data = mbeir_infoseek_val_data[len(mbeir_infoseek_val_data) // 2 :]
+        mbeir_infoseek_new_val_data_path = os.path.join(oven_dir, "mbeir_infoseek_new_val.jsonl")
+        mbeir_infoseek_new_test_data_path = os.path.join(oven_dir, "mbeir_infoseek_new_test.jsonl")
+        oven_1m_candidate_pool_path = os.path.join(oven_dir, "mbeir_oven_1m_cand_pool.jsonl")
         oven_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
             oven_1m_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        infoseek_cand_pool_file_path = os.path.join(
-            oven_dir, "mbeir_infoseek_cand_pool.jsonl"
-        )
+        infoseek_cand_pool_file_path = os.path.join(oven_dir, "mbeir_infoseek_cand_pool.jsonl")
         infoseek_cand_pool = load_mbeir_format_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True, key_type="did"
         )
         combined_pool_dict = {**infoseek_cand_pool, **oven_cand_pool_dict}
         print(f"Saved new validation data to {mbeir_infoseek_new_val_data_path}")
-        save_list_as_jsonl(
-            new_infoseek_val_data, mbeir_infoseek_new_val_data_path, mode="w"
-        )
+        save_list_as_jsonl(new_infoseek_val_data, mbeir_infoseek_new_val_data_path, mode="w")
         print_mbeir_format_dataset_stats(new_infoseek_val_data, combined_pool_dict)
         print(f"Saved new test data to {mbeir_infoseek_new_test_data_path}")
-        save_list_as_jsonl(
-            new_infoseek_test_data, mbeir_infoseek_new_test_data_path, mode="w"
-        )
+        save_list_as_jsonl(new_infoseek_test_data, mbeir_infoseek_new_test_data_path, mode="w")
         print_mbeir_format_dataset_stats(new_infoseek_test_data, combined_pool_dict)
 
     # Split candidate pool by task
@@ -1053,9 +907,7 @@ def main():
     if args.split_candidate_pool_by_task:
         # Load the candidate pool
         infoseek_cand_pool = load_jsonl_as_list(infoseek_cand_pool_file_path)
-        print(
-            f"Split the candidate pool {infoseek_cand_pool_file_path} according to task"
-        )
+        print(f"Split the candidate pool {infoseek_cand_pool_file_path} according to task")
 
         # Split the candidate pool
         infoseek_task6_cand_pool = []
@@ -1071,12 +923,8 @@ def main():
         print(f"Number of candidates for task 8: {len(infoseek_task8_cand_pool)}")
 
         # Save the candidate pool
-        infoseek_task6_cand_pool_path = os.path.join(
-            oven_dir, "mbeir_infoseek_task6_cand_pool.jsonl"
-        )
-        infoseek_task8_cand_pool_path = os.path.join(
-            oven_dir, "mbeir_infoseek_task8_cand_pool.jsonl"
-        )
+        infoseek_task6_cand_pool_path = os.path.join(oven_dir, "mbeir_infoseek_task6_cand_pool.jsonl")
+        infoseek_task8_cand_pool_path = os.path.join(oven_dir, "mbeir_infoseek_task8_cand_pool.jsonl")
         save_list_as_jsonl(infoseek_task6_cand_pool, infoseek_task6_cand_pool_path)
         save_list_as_jsonl(infoseek_task8_cand_pool, infoseek_task8_cand_pool_path)
         print(f"Saved task 6 candidate pool to {infoseek_task6_cand_pool_path}")
@@ -1090,23 +938,15 @@ def main():
         infoseek_cand_dict = load_mbeir_format_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True, key_type="did"
         )
-        oven_1m_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_1m_cand_pool.jsonl"
-        )
+        oven_1m_candidate_pool_path = os.path.join(oven_dir, "mbeir_oven_1m_cand_pool.jsonl")
         oven_1m_cand_dict = load_mbeir_format_pool_file_as_dict(
             oven_1m_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
 
         for split in ["val", "test"]:
-            infoseek_data_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_new_{split}.jsonl"
-            )
-            task6_data_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_task6_{split}.jsonl"
-            )
-            task8_data_path = os.path.join(
-                oven_dir, f"mbeir_infoseek_task8_{split}.jsonl"
-            )
+            infoseek_data_path = os.path.join(oven_dir, f"mbeir_infoseek_new_{split}.jsonl")
+            task6_data_path = os.path.join(oven_dir, f"mbeir_infoseek_task6_{split}.jsonl")
+            task8_data_path = os.path.join(oven_dir, f"mbeir_infoseek_task8_{split}.jsonl")
 
             # Load the data
             infoseek_data = load_jsonl_as_list(infoseek_data_path)

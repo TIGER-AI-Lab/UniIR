@@ -31,9 +31,7 @@ assert WEBQA_DATASET_ID is not None, "Unknown dataset name!"
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Decode WebQA images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Decode WebQA images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -126,9 +124,7 @@ def webqa_to_mbeir_entry(
 
     def create_webqa_candidate(fact, modality_type):
         if modality_type == "image,text":
-            img_path = os.path.join(
-                "mbeir_images", "webqa_images", str(fact["image_id"]) + ".jpg"
-            )
+            img_path = os.path.join("mbeir_images", "webqa_images", str(fact["image_id"]) + ".jpg")
             candidate_txt = format_string(fact["caption"])
         elif modality_type == "text":
             img_path = None
@@ -147,9 +143,7 @@ def webqa_to_mbeir_entry(
         doc_key = generate_mbeir_format_doc_key(candidate)
         did = candidate_pool.get(doc_key, None)
         if did is None:
-            print(
-                f"Warning: Candidate not found in the candidate pool. doc_key: {doc_key}"
-            )
+            print(f"Warning: Candidate not found in the candidate pool. doc_key: {doc_key}")
         return did
 
     query_txt = format_string(webqa_entry["Q"])
@@ -199,9 +193,7 @@ def webqa_to_mbeir(webqa_data, candidate_pool_file_path, include_src_content=Tru
     mbeir_entries = []
 
     # Load candidate pool
-    candidate_pool = load_mbeir_format_pool_file_as_dict(
-        candidate_pool_file_path, doc_key_to_content=False
-    )
+    candidate_pool = load_mbeir_format_pool_file_as_dict(candidate_pool_file_path, doc_key_to_content=False)
 
     for webqa_entry in webqa_data:
         mbeir_entry = webqa_to_mbeir_entry(
@@ -251,18 +243,14 @@ def generate_webqa_candidate_pool(
                         if fact_type.startswith("img"):
                             img_id = fact["image_id"]
                             caption = format_string(fact["caption"])
-                            img_path = os.path.join(
-                                "mbeir_images", "webqa_images", str(img_id) + ".jpg"
-                            )
+                            img_path = os.path.join("mbeir_images", "webqa_images", str(img_id) + ".jpg")
 
                             # Check if the image-text pair has been seen before
                             if not caption:
                                 continue
                             if (img_path, caption) in seen_image_text_pairs:
                                 continue
-                            if not is_valid_image(
-                                os.path.join(mbeir_data_dir, img_path)
-                            ):
+                            if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
                                 continue
                             candidate_pool_entry = {
                                 "img_path": img_path,
@@ -274,9 +262,7 @@ def generate_webqa_candidate_pool(
                                 src_content = {
                                     "image_id": str(fact.get("image_id", "")),
                                 }
-                                candidate_pool_entry["src_content"] = json.dumps(
-                                    src_content
-                                )
+                                candidate_pool_entry["src_content"] = json.dumps(src_content)
                             cand_pool_entries.append(candidate_pool_entry)
                             seen_image_text_pairs.add((img_path, caption))
 
@@ -295,9 +281,7 @@ def generate_webqa_candidate_pool(
                                 src_content = {
                                     "snippet_id": str(fact.get("snippet_id", "")),
                                 }
-                                candidate_pool_entry["src_content"] = json.dumps(
-                                    src_content
-                                )
+                                candidate_pool_entry["src_content"] = json.dumps(src_content)
                             cand_pool_entries.append(candidate_pool_entry)
                             seen_texts.add(txt)
         return cand_pool_entries
@@ -306,12 +290,8 @@ def generate_webqa_candidate_pool(
     seen_image_text_pairs = set()
     document_id = 1  # Note: We start from 1 for document IDs
     cand_pool_entries_merged = []
-    cand_pool_entries_merged.extend(
-        process_webqa_file(webqa_train_val_json_path, seen_texts, seen_image_text_pairs)
-    )
-    cand_pool_entries_merged.extend(
-        process_webqa_file(webqa_test_json_path, seen_texts, seen_image_text_pairs)
-    )
+    cand_pool_entries_merged.extend(process_webqa_file(webqa_train_val_json_path, seen_texts, seen_image_text_pairs))
+    cand_pool_entries_merged.extend(process_webqa_file(webqa_test_json_path, seen_texts, seen_image_text_pairs))
     for entry in cand_pool_entries_merged:
         entry["did"] = f"{WEBQA_DATASET_ID}:{document_id}"
         document_id += 1
@@ -408,27 +388,15 @@ def main():
         print("Converting WebQA dataset to MBEIR format...")
         with open(webqa_train_val_json_path, "r") as source:
             webqa_train_val_data = json.load(source)
-            webqa_train_data = [
-                entry
-                for key, entry in webqa_train_val_data.items()
-                if entry["split"] == "train"
-            ]
-            webqa_val_data = [
-                entry
-                for key, entry in webqa_train_val_data.items()
-                if entry["split"] == "val"
-            ]
+            webqa_train_data = [entry for key, entry in webqa_train_val_data.items() if entry["split"] == "train"]
+            webqa_val_data = [entry for key, entry in webqa_train_val_data.items() if entry["split"] == "val"]
         print(
             f"Loaded {len(webqa_train_data)} train entries and {len(webqa_val_data)} val entries from {webqa_train_val_json_path}."
         )
-        print(
-            f"Total number of entries in {webqa_train_val_json_path}: {len(webqa_train_val_data)}"
-        )
+        print(f"Total number of entries in {webqa_train_val_json_path}: {len(webqa_train_val_data)}")
         data_split_list = ["train", "val"]
         for data_split in data_split_list:
-            mbeir_format_webqa_path = os.path.join(
-                webqa_dir, f"mbeir_webqa_{data_split}.jsonl"
-            )
+            mbeir_format_webqa_path = os.path.join(webqa_dir, f"mbeir_webqa_{data_split}.jsonl")
             if data_split == "train":
                 webqa_data = webqa_train_data
             elif data_split == "val":
@@ -453,9 +421,7 @@ def main():
             # Print statistics
             total_entries, data = count_entries_in_file(mbeir_format_webqa_path)
             print(f"MBEIR format WebQA data saved to {mbeir_format_webqa_path}")
-            print(
-                f"Total number of entries in {mbeir_format_webqa_path}: {total_entries}"
-            )
+            print(f"Total number of entries in {mbeir_format_webqa_path}: {total_entries}")
             webqa_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                 webqa_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -484,15 +450,9 @@ def main():
         train_data = data[num_val_entries:]
 
         # Save the splits to different files
-        train_data_after_split_path = os.path.join(
-            webqa_dir, "mbeir_webqa_train_after_split.jsonl"
-        )
-        val_data_after_split_path = os.path.join(
-            webqa_dir, "mbeir_webqa_val_after_split.jsonl"
-        )
-        test_data_after_split_path = os.path.join(
-            webqa_dir, "mbeir_webqa_test_after_split.jsonl"
-        )
+        train_data_after_split_path = os.path.join(webqa_dir, "mbeir_webqa_train_after_split.jsonl")
+        val_data_after_split_path = os.path.join(webqa_dir, "mbeir_webqa_val_after_split.jsonl")
+        test_data_after_split_path = os.path.join(webqa_dir, "mbeir_webqa_test_after_split.jsonl")
         save_list_as_jsonl(train_data, train_data_after_split_path)
         save_list_as_jsonl(val_data, val_data_after_split_path)
         val_data_before_split_path = os.path.join(webqa_dir, "mbeir_webqa_val.jsonl")
@@ -503,28 +463,18 @@ def main():
             webqa_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
 
-        total_train_entries, train_data = count_entries_in_file(
-            train_data_after_split_path
-        )
-        print(
-            f"Total number of entries in {train_data_after_split_path}: {total_train_entries}"
-        )
+        total_train_entries, train_data = count_entries_in_file(train_data_after_split_path)
+        print(f"Total number of entries in {train_data_after_split_path}: {total_train_entries}")
         print(f"Saved train data to {train_data_after_split_path}")
         print_mbeir_format_dataset_stats(train_data, webqa_cand_pool_dict)
 
         total_val_entries, val_data = count_entries_in_file(val_data_after_split_path)
-        print(
-            f"Total number of entries in {val_data_after_split_path}: {total_val_entries}"
-        )
+        print(f"Total number of entries in {val_data_after_split_path}: {total_val_entries}")
         print(f"Saved val data to {val_data_after_split_path}")
         print_mbeir_format_dataset_stats(val_data, webqa_cand_pool_dict)
 
-        total_test_entries, test_data = count_entries_in_file(
-            test_data_after_split_path
-        )
-        print(
-            f"Total number of entries in {test_data_after_split_path}: {total_test_entries}"
-        )
+        total_test_entries, test_data = count_entries_in_file(test_data_after_split_path)
+        print(f"Total number of entries in {test_data_after_split_path}: {total_test_entries}")
         print(f"Saved test data to {test_data_after_split_path}")
         print_mbeir_format_dataset_stats(test_data, webqa_cand_pool_dict)
 
@@ -546,12 +496,8 @@ def main():
                 raise ValueError(f"Unknown modality: {webqa_cand['modality']}")
 
         # Save the candidate pool
-        webqa_task1_cand_pool_path = os.path.join(
-            webqa_dir, "mbeir_webqa_task1_cand_pool.jsonl"
-        )
-        webqa_task2_cand_pool_path = os.path.join(
-            webqa_dir, "mbeir_webqa_task2_cand_pool.jsonl"
-        )
+        webqa_task1_cand_pool_path = os.path.join(webqa_dir, "mbeir_webqa_task1_cand_pool.jsonl")
+        webqa_task2_cand_pool_path = os.path.join(webqa_dir, "mbeir_webqa_task2_cand_pool.jsonl")
         save_list_as_jsonl(webqa_task1_cand_pool, webqa_task1_cand_pool_path)
         save_list_as_jsonl(webqa_task2_cand_pool, webqa_task2_cand_pool_path)
         print(f"Saved task 1 candidate pool to {webqa_task1_cand_pool_path}")
@@ -568,15 +514,9 @@ def main():
         )
 
         for split in ["val", "test"]:
-            data_path = os.path.join(
-                webqa_dir, f"mbeir_webqa_{split}_after_split.jsonl"
-            )
-            task1_data_path = os.path.join(
-                webqa_dir, f"mbeir_webqa_task1_{split}.jsonl"
-            )
-            task2_data_path = os.path.join(
-                webqa_dir, f"mbeir_webqa_task2_{split}.jsonl"
-            )
+            data_path = os.path.join(webqa_dir, f"mbeir_webqa_{split}_after_split.jsonl")
+            task1_data_path = os.path.join(webqa_dir, f"mbeir_webqa_task1_{split}.jsonl")
+            task2_data_path = os.path.join(webqa_dir, f"mbeir_webqa_task2_{split}.jsonl")
 
             # Load the data
             webqa_data = load_jsonl_as_list(data_path)
@@ -603,12 +543,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        webqa_train_candidate_pool_path = os.path.join(
-            webqa_dir, "mbeir_webqa_train_cand_pool.jsonl"
-        )
-        mbeir_format_webqa_train_data_path = os.path.join(
-            webqa_dir, f"mbeir_webqa_train_after_split.jsonl"
-        )
+        webqa_train_candidate_pool_path = os.path.join(webqa_dir, "mbeir_webqa_train_cand_pool.jsonl")
+        mbeir_format_webqa_train_data_path = os.path.join(webqa_dir, f"mbeir_webqa_train_after_split.jsonl")
         assert os.path.exists(
             mbeir_format_webqa_train_data_path
         ), f"File {mbeir_format_webqa_train_data_path} does not exist"
@@ -618,9 +554,7 @@ def main():
         webqa_cand_pool = load_mbeir_format_pool_file_as_dict(
             webqa_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_webqa_train_data = load_jsonl_as_list(
-            mbeir_format_webqa_train_data_path
-        )
+        mbeir_format_webqa_train_data = load_jsonl_as_list(mbeir_format_webqa_train_data_path)
         for entry in mbeir_format_webqa_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -629,16 +563,12 @@ def main():
                     webqa_train_candidate_pool[did] = cand
                 else:
                     if webqa_train_candidate_pool[did] != cand:
-                        print(
-                            f"Duplicate did for two candidates found: {webqa_train_candidate_pool[did]} and {cand}"
-                        )
+                        print(f"Duplicate did for two candidates found: {webqa_train_candidate_pool[did]} and {cand}")
 
         # Save the training candidate pool
         webqa_train_candidate_pool_list = list(webqa_train_candidate_pool.values())
         webqa_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(
-            webqa_train_candidate_pool_list, webqa_train_candidate_pool_path
-        )
+        save_list_as_jsonl(webqa_train_candidate_pool_list, webqa_train_candidate_pool_path)
         print(f"Saved training candidate pool to {webqa_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(webqa_train_candidate_pool_path)
 

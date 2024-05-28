@@ -22,9 +22,7 @@ def set_seed(seed):
 
 def cosine_lr_schedule(optimizer, epoch, max_epoch, init_lr, min_lr):
     """Decay the learning rate"""
-    lr = (init_lr - min_lr) * 0.5 * (
-        1.0 + math.cos(math.pi * epoch / max_epoch)
-    ) + min_lr
+    lr = (init_lr - min_lr) * 0.5 * (1.0 + math.cos(math.pi * epoch / max_epoch)) + min_lr
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
 
@@ -123,9 +121,7 @@ class MetricLogger(object):
             return self.meters[attr]
         if attr in self.__dict__:
             return self.__dict__[attr]
-        raise AttributeError(
-            "'{}' object has no attribute '{}'".format(type(self).__name__, attr)
-        )
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, attr))
 
     def __str__(self):
         loss_str = []
@@ -201,11 +197,7 @@ class MetricLogger(object):
             end = time.time()
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print(
-            "{} Total time: {} ({:.4f} s / it)".format(
-                header, total_time_str, total_time / len(iterable)
-            )
-        )
+        print("{} Total time: {} ({:.4f} s / it)".format(header, total_time_str, total_time / len(iterable)))
 
 
 class AttrDict(dict):
@@ -301,9 +293,7 @@ def init_distributed_mode(args):
     torch.cuda.set_device(args.gpu)
     args.dist_backend = "nccl"
     print(
-        "| distributed init (rank {}, word {}): {}".format(
-            args.rank, args.world_size, args.dist_url
-        ),
+        "| distributed init (rank {}, word {}): {}".format(args.rank, args.world_size, args.dist_url),
         flush=True,
     )
     torch.distributed.init_process_group(
