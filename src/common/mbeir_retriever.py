@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from collections import defaultdict
 from datetime import datetime
 import json
+from typing import Any
 
 import numpy as np
 import csv
@@ -26,6 +27,8 @@ from data.preprocessing.utils import (
     unhash_qid,
     get_mbeir_task_name,
 )
+
+from interactive_retriever import InteractiveRetriever
 
 
 def create_index(config):
@@ -250,7 +253,29 @@ def search_index_with_batch(query_embeddings_batch, index_gpu, num_cand_to_retri
     return distances, indices
 
 
-def run_retrieval(config):
+def get_complement_candidates(
+    cand_index_path: str,
+    candidates_path: str,
+    candidates: list[dict[str, Any]],
+    config: OmegaConf,
+):
+    complement_modalities = {"text": "image", "image": "text"}
+    queries = [(cand["modality"], cand["txt"], cand["img_path"]) for cand in candidates]
+    retriever = InteractiveRetriever(cand_index_path, candidates_path, config)
+    results = retriever.retrieve(queries, k=10)
+    complement_candidates = []
+    for idx, result in enumerate(results):
+        q_modality = queries[idx][0]
+        for cand in result:
+            # Get the first retrieved candidate with a modality that complements the original candidate's modality.
+            if cand["modality"] == complement_modalities[q_modality]:
+                complement_candidates.append(cand)
+                break
+    assert len(candidates) == len(queries) == len(complement_candidates)
+    return complement_candidates
+
+
+def run_retrieval(config, query_embedder_config):
     """This script runs retrieval on the faiss index"""
     uniir_dir = config.uniir_dir
     mbeir_data_dir = config.mbeir_data_dir
@@ -457,11 +482,14 @@ def run_retrieval(config):
                         retrieved_cands.append(did_to_candidates[doc_id])
                     retrieved_dict = {"query": query, "candidates": retrieved_cands}
                     if retrieval_config.retrieve_image_text_pairs:
-                        # TODO(sahel): Populate the complement candidates by retrieving the top 1 candidate
-                        # for each retrieved candidate. The complement candidate will have the complementary
-                        # modality (i.e. image for text candidates, and text for image candidates).
-                        complement_candidates = []
-                        retrieved_dict["complement_candidates"] = complement_candidates
+                        retrieved_dict["complement_candidates"] = (
+                            get_complement_candidates(
+                                cand_index_path,
+                                candidates_path,
+                                retrieved_cands,
+                                query_embedder_config,
+                            )
+                        )
                     json.dump(
                         retrieved_dict,
                         retrieved_file_path,
@@ -754,6 +782,11 @@ def parse_arguments():
         "--config_path", default="config.yaml", help="Path to the config file."
     )
     parser.add_argument(
+        "--query_embedder_config_path",
+        default="",
+        help="Path to the query embedder config file. Used when retrieving candidates with complement modalities in raw_retrieval mode.",
+    )
+    parser.add_argument(
         "--enable_create_index", action="store_true", help="Enable create index"
     )
     parser.add_argument(
@@ -775,6 +808,11 @@ def main():
 
     print(OmegaConf.to_yaml(config, sort_keys=False))
 
+    if args.query_embedder_config_path:
+        query_embedder_config = OmegaConf.load(args.query_embedder_config_path)
+        config.uniir_dir = args.uniir_dir
+        config.mbeir_data_dir = args.mbeir_data_dir
+
     if args.enable_hard_negative_mining:
         run_hard_negative_mining(config)
 
@@ -782,7 +820,7 @@ def main():
         create_index(config)
 
     if args.enable_retrieval:
-        run_retrieval(config)
+        run_retrieval(config, query_embedder_config)
 
 
 if __name__ == "__main__":
