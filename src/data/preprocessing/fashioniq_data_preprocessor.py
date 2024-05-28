@@ -94,9 +94,7 @@ def fashioniq_to_mbeir_entry(
     if concatenate_captions:
         # Join all captions with " and "
         captions = fashioniq_entry["captions"]
-        filtered_captions = [
-            format_fashioniq_sentence(caption) for caption in captions if caption
-        ]
+        filtered_captions = [format_fashioniq_sentence(caption) for caption in captions if caption]
         caption = " and ".join(filtered_captions)
         clean_caption = format_string(caption)
         if not clean_caption:
@@ -104,11 +102,7 @@ def fashioniq_to_mbeir_entry(
             return mbeir_entries  # query txt is missing
         captions = [clean_caption]
     else:
-        captions = [
-            format_string(caption)
-            for caption in fashioniq_entry["captions"]
-            if format_string(caption)
-        ]
+        captions = [format_string(caption) for caption in fashioniq_entry["captions"] if format_string(caption)]
 
     for clean_caption in captions:
         mbeir_entry = {
@@ -121,9 +115,7 @@ def fashioniq_to_mbeir_entry(
             "neg_cand_list": [],
         }
         query_img_name = fashioniq_entry["candidate"] + ".jpg"
-        query_img_path = os.path.join(
-            "mbeir_images", "fashioniq_images", query_img_name
-        )
+        query_img_path = os.path.join("mbeir_images", "fashioniq_images", query_img_name)
         if not is_valid_image(os.path.join(mbeir_data_dir, query_img_path)):
             print(f"Warning: Invalid query_img_path : {query_img_path}")
             continue  # query image is missing
@@ -141,9 +133,7 @@ def fashioniq_to_mbeir_entry(
         if not pos_candidate:
             print(f"Warning: No positive candidate for {doc_key}")
             continue  # positive candidate is missing
-        mbeir_entry["pos_cand_list"].append(
-            pos_candidate["did"]
-        )  # We only need the document ID
+        mbeir_entry["pos_cand_list"].append(pos_candidate["did"])  # We only need the document ID
 
         mbeir_entries.append(mbeir_entry)
 
@@ -179,9 +169,7 @@ def fashioniq_to_mbeir(
     mbeir_entries_merged = []
 
     # Load candidate pool
-    candidate_pool = load_mbeir_format_fashioniq_pool_file_as_dict(
-        candidate_pool_file_path
-    )
+    candidate_pool = load_mbeir_format_fashioniq_pool_file_as_dict(candidate_pool_file_path)
 
     for fashioniq_entry in fashioniq_data:
         mbeir_entries = fashioniq_to_mbeir_entry(
@@ -212,9 +200,7 @@ def generate_fashioniq_candidate_pool(
     """
 
     # Create the image_name_set by listing all files in the fashioniq_images_dir.
-    image_name_set = {
-        fname for fname in os.listdir(fashioniq_images_dir) if fname.endswith(".jpg")
-    }
+    image_name_set = {fname for fname in os.listdir(fashioniq_images_dir) if fname.endswith(".jpg")}
 
     document_id = 1  # Note: We start from 1 for document IDs
 
@@ -242,9 +228,7 @@ def generate_fashioniq_candidate_pool(
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format Fashion IQ images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format Fashion IQ images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -299,16 +283,12 @@ def main():
     # So all the paths are hardcoded.
     fashioniq_dir = os.path.join(args.mbeir_data_dir, args.fashioniq_dir)
     fashioniq_images_dir = os.path.join(args.mbeir_data_dir, args.fashioniq_images_dir)
-    fashioniq_candidate_pool_path = os.path.join(
-        fashioniq_dir, "mbeir_fashioniq_cand_pool.jsonl"
-    )
+    fashioniq_candidate_pool_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_cand_pool.jsonl")
     fashioniq_captions_dir = os.path.join(fashioniq_dir, "captions")
 
     if args.enable_image_processing:
         print(f"Processing images in {fashioniq_images_dir}...")
-        parallel_process_image_directory(
-            fashioniq_images_dir, num_processes=cpu_count()
-        )
+        parallel_process_image_directory(fashioniq_images_dir, num_processes=cpu_count())
 
     # Generate candidate pool
     if args.enable_candidate_pool:
@@ -341,9 +321,7 @@ def main():
             # ("test", ["cap.dress.test.json", "cap.shirt.test.json", "cap.toptee.test.json"]),
         ]
         for split, data_paths in data_set_list:
-            mbeir_format_fashioniq_data_path = os.path.join(
-                fashioniq_dir, f"mbeir_fashioniq_{split}.jsonl"
-            )
+            mbeir_format_fashioniq_data_path = os.path.join(fashioniq_dir, f"mbeir_fashioniq_{split}.jsonl")
 
             mbeir_entries_merged = []
             for data_path in data_paths:
@@ -360,9 +338,7 @@ def main():
                 mbeir_entries_merged.extend(mbeir_entries)
 
             # Aggregate data
-            mbeir_entries_merged = aggregate_candidates_for_mbeir_format_dataset(
-                mbeir_entries_merged
-            )
+            mbeir_entries_merged = aggregate_candidates_for_mbeir_format_dataset(mbeir_entries_merged)
 
             # Generate query ID after merging all the entries from three files
             for i, entry in enumerate(mbeir_entries_merged):
@@ -372,15 +348,9 @@ def main():
             save_list_as_jsonl(mbeir_entries_merged, mbeir_format_fashioniq_data_path)
 
             # Print statistics
-            total_entries, _data = count_entries_in_file(
-                mbeir_format_fashioniq_data_path
-            )
-            print(
-                f"MBEIR format FashionIQ {split} data saved to {mbeir_format_fashioniq_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_fashioniq_data_path}: {total_entries}"
-            )
+            total_entries, _data = count_entries_in_file(mbeir_format_fashioniq_data_path)
+            print(f"MBEIR format FashionIQ {split} data saved to {mbeir_format_fashioniq_data_path}")
+            print(f"Total number of entries in {mbeir_format_fashioniq_data_path}: {total_entries}")
             fashioniq_cand_pool = load_mbeir_format_pool_file_as_dict(
                 fashioniq_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -388,63 +358,41 @@ def main():
 
     # Split training set into val and move the val set to the test set
     if args.split_train_into_val_and_val_into_test:
-        print(
-            "Split the Fashion IQ training set into val and move the val set to the test set..."
-        )
+        print("Split the Fashion IQ training set into val and move the val set to the test set...")
         print("1700 of the Fashion IQ training set will be moved to the val set.")
-        mbeir_fashioniq_train_data_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_train.jsonl"
-        )
+        mbeir_fashioniq_train_data_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_train.jsonl")
         mbeir_fashioniq_train_data = load_jsonl_as_list(mbeir_fashioniq_train_data_path)
         random.seed(2023)
         random.shuffle(mbeir_fashioniq_train_data)
         fashioniq_new_val_data = mbeir_fashioniq_train_data[:1700]
         fashioniq_new_train_data = mbeir_fashioniq_train_data[1700:]
-        mbeir_fashioniq_new_val_data_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_new_val.jsonl"
-        )
-        mbeir_fashioniq_new_train_data_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_new_train.jsonl"
-        )
-        mbeir_fashioniq_val_data_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_val.jsonl"
-        )
+        mbeir_fashioniq_new_val_data_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_new_val.jsonl")
+        mbeir_fashioniq_new_train_data_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_new_train.jsonl")
+        mbeir_fashioniq_val_data_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_val.jsonl")
         fashioniq_new_test_data = load_jsonl_as_list(mbeir_fashioniq_val_data_path)
-        mbeir_fashioniq_new_test_data_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_new_test.jsonl"
-        )
+        mbeir_fashioniq_new_test_data_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_new_test.jsonl")
 
         # Load the candidate pool
         fashioniq_cand_pool = load_mbeir_format_pool_file_as_dict(
             fashioniq_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        save_list_as_jsonl(
-            fashioniq_new_train_data, mbeir_fashioniq_new_train_data_path, mode="w"
-        )
+        save_list_as_jsonl(fashioniq_new_train_data, mbeir_fashioniq_new_train_data_path, mode="w")
         print(f"Saved new training data to {mbeir_fashioniq_new_train_data_path}")
         print_mbeir_format_dataset_stats(fashioniq_new_train_data, fashioniq_cand_pool)
 
-        save_list_as_jsonl(
-            fashioniq_new_val_data, mbeir_fashioniq_new_val_data_path, mode="w"
-        )
+        save_list_as_jsonl(fashioniq_new_val_data, mbeir_fashioniq_new_val_data_path, mode="w")
         print(f"Saved new val data to {mbeir_fashioniq_new_val_data_path}")
         print_mbeir_format_dataset_stats(fashioniq_new_val_data, fashioniq_cand_pool)
 
-        save_list_as_jsonl(
-            fashioniq_new_test_data, mbeir_fashioniq_new_test_data_path, mode="w"
-        )
+        save_list_as_jsonl(fashioniq_new_test_data, mbeir_fashioniq_new_test_data_path, mode="w")
         print(f"Saved new test data to {mbeir_fashioniq_new_test_data_path}")
         print_mbeir_format_dataset_stats(fashioniq_new_test_data, fashioniq_cand_pool)
 
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        fashioniq_train_candidate_pool_path = os.path.join(
-            fashioniq_dir, "mbeir_fashioniq_train_cand_pool.jsonl"
-        )
-        mbeir_format_fashioniq_train_data_path = os.path.join(
-            fashioniq_dir, f"mbeir_fashioniq_new_train.jsonl"
-        )
+        fashioniq_train_candidate_pool_path = os.path.join(fashioniq_dir, "mbeir_fashioniq_train_cand_pool.jsonl")
+        mbeir_format_fashioniq_train_data_path = os.path.join(fashioniq_dir, f"mbeir_fashioniq_new_train.jsonl")
         assert os.path.exists(
             mbeir_format_fashioniq_train_data_path
         ), f"File {mbeir_format_fashioniq_train_data_path} does not exist"
@@ -454,9 +402,7 @@ def main():
         fashioniq_cand_pool = load_mbeir_format_pool_file_as_dict(
             fashioniq_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_fashioniq_train_data = load_jsonl_as_list(
-            mbeir_format_fashioniq_train_data_path
-        )
+        mbeir_format_fashioniq_train_data = load_jsonl_as_list(mbeir_format_fashioniq_train_data_path)
         for entry in mbeir_format_fashioniq_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -470,15 +416,9 @@ def main():
                         )
 
         # Save the training candidate pool
-        fashioniq_train_candidate_pool_list = list(
-            fashioniq_train_candidate_pool.values()
-        )
-        fashioniq_train_candidate_pool_list.sort(
-            key=lambda x: int(x["did"].split(":")[1])
-        )
-        save_list_as_jsonl(
-            fashioniq_train_candidate_pool_list, fashioniq_train_candidate_pool_path
-        )
+        fashioniq_train_candidate_pool_list = list(fashioniq_train_candidate_pool.values())
+        fashioniq_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
+        save_list_as_jsonl(fashioniq_train_candidate_pool_list, fashioniq_train_candidate_pool_path)
         print(f"Saved training candidate pool to {fashioniq_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(fashioniq_train_candidate_pool_path)
 

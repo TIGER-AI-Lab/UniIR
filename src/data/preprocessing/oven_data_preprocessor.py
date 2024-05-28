@@ -87,9 +87,7 @@ def oven_to_mbeir_entry(
     # Locate the image path according to the original OVEN data structure
     img_subdir = oven_entry["image_id"][-8:-6]
     img_filename = f"{oven_entry['image_id']}.jpg"
-    query_img_path = os.path.join(
-        "mbeir_images", "oven_images", img_subdir, img_filename
-    )
+    query_img_path = os.path.join("mbeir_images", "oven_images", img_subdir, img_filename)
     if not is_valid_image(os.path.join(mbeir_data_dir, query_img_path)):
         print(f"Warning: Invalid image {query_img_path} for oven entry {oven_entry}")
         return None  # Skip if the image is invalid
@@ -161,24 +159,17 @@ def get_deduplicated_oven_data(oven_data):
     return deduplicated_data
 
 
-def parallel_oven_to_mbeir(
-    oven_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True
-):
+def parallel_oven_to_mbeir(oven_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True):
     # Load candidate pool
     with Manager() as manager:
-        candidate_pool = manager.dict(
-            load_mbeir_format_oven_pool_file_as_dict(candidate_pool_file_path)
-        )
+        candidate_pool = manager.dict(load_mbeir_format_oven_pool_file_as_dict(candidate_pool_file_path))
 
         # Deduplicated data
         num_processes = cpu_count() // 2
         deduplicated_data = get_deduplicated_oven_data(oven_data)
         data_chunks = split_into_chunks(deduplicated_data, num_processes)
 
-        args = [
-            (data_chunks[i], candidate_pool, mbeir_data_dir, include_src_content)
-            for i in range(num_processes)
-        ]
+        args = [(data_chunks[i], candidate_pool, mbeir_data_dir, include_src_content) for i in range(num_processes)]
 
         # Use multiprocessing to process chunks in parallel
         with Pool(num_processes) as p:
@@ -232,21 +223,13 @@ def generate_oven_candidate_pool_chunk(args):
     output = []
     for oven_cand in oven_cand_data:
         wikidata_id = oven_cand["wikidata_id"]
-        if oven_cand.get(
-            "wikipedia_image_url", None
-        ):  # Check if the candidate has an image
+        if oven_cand.get("wikipedia_image_url", None):  # Check if the candidate has an image
             modality = "image,text"
-            oven_wiki_images_dir = os.path.join(
-                "mbeir_images", "oven_images", "wikipedia_images_full"
-            )
-            img_dir = os.path.join(
-                oven_wiki_images_dir, get_directory_for_id(wikidata_id)
-            )
+            oven_wiki_images_dir = os.path.join("mbeir_images", "oven_images", "wikipedia_images_full")
+            img_dir = os.path.join(oven_wiki_images_dir, get_directory_for_id(wikidata_id))
             img_path = os.path.join(img_dir, f"{wikidata_id}.jpg")
             if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
-                print(
-                    f"Warning: Invalid image {img_path} for wikidata_id {wikidata_id}"
-                )
+                print(f"Warning: Invalid image {img_path} for wikidata_id {wikidata_id}")
                 modality = "text"  # Set modality to text if the image is invalid
                 img_path = None
         else:
@@ -299,9 +282,7 @@ def parallel_generate_oven_candidate_pool(
     }
     """
     # oven_wiki6m_file_path is a jsonl file
-    assert oven_wiki6m_file_path.endswith(
-        ".jsonl"
-    ), f"Data Path {oven_wiki6m_file_path} is not a jsonl file"
+    assert oven_wiki6m_file_path.endswith(".jsonl"), f"Data Path {oven_wiki6m_file_path} is not a jsonl file"
     oven_cand_data = load_jsonl_as_list(oven_wiki6m_file_path)
 
     # Split data into chunks
@@ -313,10 +294,7 @@ def parallel_generate_oven_candidate_pool(
     start_ids = [1]
     for i in range(1, num_processes):
         start_ids.append(start_ids[-1] + len(data_chunks[i - 1]))
-    args = [
-        (data_chunks[i], start_ids[i], mbeir_data_dir, include_src_content)
-        for i in range(num_processes)
-    ]
+    args = [(data_chunks[i], start_ids[i], mbeir_data_dir, include_src_content) for i in range(num_processes)]
 
     # Use multiprocessing to process chunks in parallel
     with Pool(num_processes) as p:
@@ -344,15 +322,12 @@ def sanitize_svg(svg_content):
 
 
 def download_wiki_images(mbeir_data_dir, oven_dir):
-    oven_wiki_img_dir = os.path.join(
-        mbeir_data_dir, "mbeir_images/oven_images/wiki_images/"
-    )
+    oven_wiki_img_dir = os.path.join(mbeir_data_dir, "mbeir_images/oven_images/wiki_images/")
     oven_data_dir = os.path.join(oven_dir, "oven_data/")
     # Load the Wikipedia data to map entity IDs to image URLs
     with open(os.path.join(oven_dir, "Wiki6M_ver_1_0.jsonl"), "r") as f:
         wikidata_to_url = {
-            entry["wikidata_id"]: entry.get("wikipedia_image_url")
-            for entry in (json.loads(line) for line in f)
+            entry["wikidata_id"]: entry.get("wikipedia_image_url") for entry in (json.loads(line) for line in f)
         }
 
     # List of files to process
@@ -362,9 +337,7 @@ def download_wiki_images(mbeir_data_dir, oven_dir):
         "oven_query_train.jsonl",
         "oven_query_val.jsonl",
     ]
-    files_to_process = [
-        os.path.join(oven_data_dir, file_name) for file_name in files_to_process
-    ]
+    files_to_process = [os.path.join(oven_data_dir, file_name) for file_name in files_to_process]
 
     # Check and create target directory for images if it doesn't exist
     if not os.path.exists(oven_wiki_img_dir):
@@ -387,9 +360,7 @@ def download_wiki_images(mbeir_data_dir, oven_dir):
             entity_id = entry["entity_id"]
             img_url = wikidata_to_url.get(entity_id, None)
 
-            relative_img_path = os.path.join(
-                oven_wiki_img_dir, f"{entity_id}.jpg"
-            )  # This remains relative
+            relative_img_path = os.path.join(oven_wiki_img_dir, f"{entity_id}.jpg")  # This remains relative
 
             if img_url:
                 full_img_path = os.path.join(oven_wiki_img_dir, f"{entity_id}.jpg")
@@ -402,9 +373,7 @@ def download_wiki_images(mbeir_data_dir, oven_dir):
                     if response.status_code == 200:
                         try:
                             if img_url.lower().endswith(".svg"):
-                                sanitized_svg_content = sanitize_svg(
-                                    response.content.decode("utf-8")
-                                )
+                                sanitized_svg_content = sanitize_svg(response.content.decode("utf-8"))
                                 png_output = BytesIO()
                                 cairosvg.svg2png(
                                     bytestring=sanitized_svg_content.encode("utf-8"),
@@ -418,9 +387,7 @@ def download_wiki_images(mbeir_data_dir, oven_dir):
                             entry["wiki_img_path"] = relative_img_path
                             entity_id_to_img_path[entity_id] = relative_img_path
                         except Exception as e:
-                            print(
-                                f"Error processing image from URL: {img_url}. Error: {e}"
-                            )
+                            print(f"Error processing image from URL: {img_url}. Error: {e}")
                             entry["wiki_img_path"] = None
                     else:
                         print(f"Failed to download image from URL: {img_url}")
@@ -437,9 +404,7 @@ def download_wiki_images(mbeir_data_dir, oven_dir):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format OVEN images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format OVEN images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -524,22 +489,14 @@ def main():
     # So all the paths are hardcoded.
     oven_dir = os.path.join(args.mbeir_data_dir, args.oven_dir)
     oven_images_dir = os.path.join(args.mbeir_data_dir, args.oven_images_dir)
-    oven_candidate_pool_1m_path = os.path.join(
-        oven_dir, "mbeir_oven_1m_cand_pool.jsonl"
-    )
-    oven_candidate_pool_6m_path = os.path.join(
-        oven_dir, "mbeir_oven_6m_cand_pool.jsonl"
-    )
+    oven_candidate_pool_1m_path = os.path.join(oven_dir, "mbeir_oven_1m_cand_pool.jsonl")
+    oven_candidate_pool_6m_path = os.path.join(oven_dir, "mbeir_oven_6m_cand_pool.jsonl")
     oven_wiki6m_file_path = os.path.join(oven_dir, "Wiki6M_ver_1_0.jsonl")
     oven_data_dir = os.path.join(oven_dir, "oven_data")
     oven_entity_train_file_path = os.path.join(oven_data_dir, "oven_entity_train.jsonl")
     oven_query_train_file_path = os.path.join(oven_data_dir, "oven_query_train.jsonl")
-    oven_entity_train_trimmed_file_path = os.path.join(
-        oven_data_dir, "oven_entity_train_trimmed.jsonl"
-    )
-    oven_query_train_trimmed_file_path = os.path.join(
-        oven_data_dir, "oven_query_train_trimmed.jsonl"
-    )
+    oven_entity_train_trimmed_file_path = os.path.join(oven_data_dir, "oven_entity_train_trimmed.jsonl")
+    oven_query_train_trimmed_file_path = os.path.join(oven_data_dir, "oven_query_train_trimmed.jsonl")
     oven_entity_val_file_path = os.path.join(oven_data_dir, "oven_entity_val.jsonl")
     oven_query_val_file_path = os.path.join(oven_data_dir, "oven_query_val.jsonl")
 
@@ -561,9 +518,7 @@ def main():
             include_src_content=True,
         )
         print(f"OVEN 6M Candidate pool saved to {oven_candidate_pool_6m_path}")
-        print_mbeir_format_cand_pool_stats(
-            oven_candidate_pool_6m_path
-        )  # Print statistics
+        print_mbeir_format_cand_pool_stats(oven_candidate_pool_6m_path)  # Print statistics
 
     # Trim the number of queries in the training sets
     if args.enable_trim_training_queries:
@@ -575,11 +530,7 @@ def main():
 
             for item in data:
                 entity_id = item["entity_id"]
-                modality = (
-                    candidate_pool[entity_id]["modality"]
-                    if entity_id in candidate_pool
-                    else None
-                )
+                modality = candidate_pool[entity_id]["modality"] if entity_id in candidate_pool else None
 
                 if entity_id not in entity_counts:
                     entity_counts[entity_id] = []
@@ -633,9 +584,7 @@ def main():
                     for item in data:
                         entity_id = item["entity_id"]
                         modality = (
-                            candidate_pool_dict[entity_id]["modality"]
-                            if entity_id in candidate_pool_dict
-                            else None
+                            candidate_pool_dict[entity_id]["modality"] if entity_id in candidate_pool_dict else None
                         )
                         if entity_id not in consolidated_data:
                             consolidated_data[entity_id] = {
@@ -644,12 +593,8 @@ def main():
                             }
                         consolidated_data[entity_id]["data"].append(item)
 
-            all_items = [
-                item for entry in consolidated_data.values() for item in entry["data"]
-            ]
-            calculate_and_print_statistics(
-                all_items, "consolidated data before trimming", candidate_pool_dict
-            )
+            all_items = [item for entry in consolidated_data.values() for item in entry["data"]]
+            calculate_and_print_statistics(all_items, "consolidated data before trimming", candidate_pool_dict)
             return consolidated_data
 
         def trim_consolidated_data(consolidated, text_threshold, image_text_threshold):
@@ -659,9 +604,7 @@ def main():
                 modality = entry["modality"]
 
                 # Determine the threshold based on modality
-                threshold = (
-                    image_text_threshold if modality == "image,text" else text_threshold
-                )
+                threshold = image_text_threshold if modality == "image,text" else text_threshold
 
                 random.shuffle(data_list)
 
@@ -674,19 +617,14 @@ def main():
             print(f"Total number of data_id post-trimming: {total_data_ids}")
             return trimmed
 
-        def save_trimmed_data(
-            trimmed_data, original_files, trimmed_files, candidate_pool_dict
-        ):
+        def save_trimmed_data(trimmed_data, original_files, trimmed_files, candidate_pool_dict):
             for file_path, trimmed_file_path in zip(original_files, trimmed_files):
                 output_data = []
                 with open(file_path, "r") as f:
                     original_data = [json.loads(line) for line in f]
                     for item in original_data:
                         entity_id = item["entity_id"]
-                        if (
-                            entity_id in trimmed_data
-                            and item in trimmed_data[entity_id]
-                        ):
+                        if entity_id in trimmed_data and item in trimmed_data[entity_id]:
                             output_data.append(item)
                             trimmed_data[entity_id].remove(item)
 
@@ -696,9 +634,7 @@ def main():
                 print(f"Trimmed data saved to {trimmed_file_path}")
 
                 # Print statistics after trimming
-                calculate_and_print_statistics(
-                    output_data, trimmed_file_path, candidate_pool_dict
-                )
+                calculate_and_print_statistics(output_data, trimmed_file_path, candidate_pool_dict)
 
         candidate_pool_dict = load_mbeir_format_oven_pool_file_as_dict(
             oven_candidate_pool_6m_path, doc_key_to_content=True
@@ -726,9 +662,7 @@ def main():
             "val": [oven_entity_val_file_path, oven_query_val_file_path],
         }
         for split, data_paths in data_set_dict.items():
-            mbeir_format_oven_data_path = os.path.join(
-                oven_dir, f"mbeir_oven_{split}.jsonl"
-            )
+            mbeir_format_oven_data_path = os.path.join(oven_dir, f"mbeir_oven_{split}.jsonl")
 
             oven_data = []
             for data_path in data_paths:
@@ -744,12 +678,8 @@ def main():
 
             # Print statistics
             total_entries, data = count_entries_in_file(mbeir_format_oven_data_path)
-            print(
-                f"MBEIR format OVEN {split} data saved to {mbeir_format_oven_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_oven_data_path}: {total_entries}"
-            )
+            print(f"MBEIR format OVEN {split} data saved to {mbeir_format_oven_data_path}")
+            print(f"Total number of entries in {mbeir_format_oven_data_path}: {total_entries}")
             oven_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                 oven_candidate_pool_6m_path, doc_key_to_content=True, key_type="did"
             )
@@ -783,30 +713,20 @@ def main():
         # Random sample 1M candidates
         random.shuffle(oven_wiki_6m_cand_pool_without_skip_set)
         augment_size = 1000000
-        oven_wiki_6m_cand_pool_without_skip_set = (
-            oven_wiki_6m_cand_pool_without_skip_set[:augment_size]
-        )
+        oven_wiki_6m_cand_pool_without_skip_set = oven_wiki_6m_cand_pool_without_skip_set[:augment_size]
 
         # Reassign document ids
-        oven_wiki_1m_cand_pool = (
-            oven_wiki_6m_cand_pool_skip_set + oven_wiki_6m_cand_pool_without_skip_set
-        )
+        oven_wiki_1m_cand_pool = oven_wiki_6m_cand_pool_skip_set + oven_wiki_6m_cand_pool_without_skip_set
         document_id_start = 1
         for i, entry in enumerate(oven_wiki_1m_cand_pool):
             entry["did"] = f"{OVEN_DATASET_ID}:{document_id_start + i}"
-        save_list_as_jsonl(
-            oven_wiki_1m_cand_pool, oven_candidate_pool_1m_path, mode="w"
-        )
+        save_list_as_jsonl(oven_wiki_1m_cand_pool, oven_candidate_pool_1m_path, mode="w")
         print_mbeir_format_cand_pool_stats(oven_candidate_pool_1m_path)
 
         # Reassign dids in the data
-        oven_wiki_1m_cand_dict = load_mbeir_format_oven_pool_file_as_dict(
-            oven_candidate_pool_1m_path
-        )
+        oven_wiki_1m_cand_dict = load_mbeir_format_oven_pool_file_as_dict(oven_candidate_pool_1m_path)
         for split in ["train", "val"]:
-            mbeir_format_oven_data_path = os.path.join(
-                oven_dir, f"mbeir_oven_{split}.jsonl"
-            )
+            mbeir_format_oven_data_path = os.path.join(oven_dir, f"mbeir_oven_{split}.jsonl")
             oven_data = load_jsonl_as_list(mbeir_format_oven_data_path)
             for oven_entry in oven_data:
                 query_src_content = json.loads(oven_entry["query_src_content"])
@@ -817,12 +737,8 @@ def main():
 
             # Print statistics
             total_entries, data = count_entries_in_file(mbeir_format_oven_data_path)
-            print(
-                f"MBEIR format OVEN {split} data saved to {mbeir_format_oven_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_oven_data_path}: {total_entries}"
-            )
+            print(f"MBEIR format OVEN {split} data saved to {mbeir_format_oven_data_path}")
+            print(f"Total number of entries in {mbeir_format_oven_data_path}: {total_entries}")
             oven_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                 oven_candidate_pool_1m_path, doc_key_to_content=True, key_type="did"
             )
@@ -831,12 +747,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        oven_train_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_train_cand_pool.jsonl"
-        )
-        mbeir_format_oven_train_data_path = os.path.join(
-            oven_dir, f"mbeir_oven_train.jsonl"
-        )
+        oven_train_candidate_pool_path = os.path.join(oven_dir, "mbeir_oven_train_cand_pool.jsonl")
+        mbeir_format_oven_train_data_path = os.path.join(oven_dir, f"mbeir_oven_train.jsonl")
         assert os.path.exists(
             mbeir_format_oven_train_data_path
         ), f"File {mbeir_format_oven_train_data_path} does not exist"
@@ -846,9 +758,7 @@ def main():
         oven_cand_pool = load_mbeir_format_pool_file_as_dict(
             oven_candidate_pool_1m_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_oven_train_data = load_jsonl_as_list(
-            mbeir_format_oven_train_data_path
-        )
+        mbeir_format_oven_train_data = load_jsonl_as_list(mbeir_format_oven_train_data_path)
         for entry in mbeir_format_oven_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -857,30 +767,20 @@ def main():
                     oven_train_candidate_pool[did] = cand
                 else:
                     if oven_train_candidate_pool[did] != cand:
-                        print(
-                            f"Duplicate did for two candidates found: {oven_train_candidate_pool[did]} and {cand}"
-                        )
+                        print(f"Duplicate did for two candidates found: {oven_train_candidate_pool[did]} and {cand}")
 
         # Save the training candidate pool
         oven_train_candidate_pool_list = list(oven_train_candidate_pool.values())
         oven_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(
-            oven_train_candidate_pool_list, oven_train_candidate_pool_path
-        )
+        save_list_as_jsonl(oven_train_candidate_pool_list, oven_train_candidate_pool_path)
         print(f"Saved training candidate pool to {oven_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(oven_train_candidate_pool_path)
 
     # Assign infoseek did to the oven data
     if args.assign_did_from_infoseek_cand_pool:
-        print(
-            "Assigning positive candidates from Infoseek candidate pool to OVEN queries..."
-        )
-        infoseek_cand_pool_file_path = os.path.join(
-            oven_dir, "mbeir_infoseek_cand_pool.jsonl"
-        )
-        infoseek_train_candidate_pool_path = os.path.join(
-            oven_dir, "mbeir_infoseek_train_cand_pool.jsonl"
-        )
+        print("Assigning positive candidates from Infoseek candidate pool to OVEN queries...")
+        infoseek_cand_pool_file_path = os.path.join(oven_dir, "mbeir_infoseek_cand_pool.jsonl")
+        infoseek_train_candidate_pool_path = os.path.join(oven_dir, "mbeir_infoseek_train_cand_pool.jsonl")
 
         def load_wiki_pool_file_as_wikidata_id_to_did_dict(pool_file_path):
             """
@@ -909,18 +809,12 @@ def main():
             ("train", infoseek_train_candidate_pool_path),
             ("val", infoseek_cand_pool_file_path),
         ]:
-            infoseek_cand_pool = load_wiki_pool_file_as_wikidata_id_to_did_dict(
-                infoseek_cand_pool_path
-            )
-            mbeir_format_oven_data_path = os.path.join(
-                oven_dir, f"mbeir_oven_{split}.jsonl"
-            )
+            infoseek_cand_pool = load_wiki_pool_file_as_wikidata_id_to_did_dict(infoseek_cand_pool_path)
+            mbeir_format_oven_data_path = os.path.join(oven_dir, f"mbeir_oven_{split}.jsonl")
             oven_data = load_jsonl_as_list(mbeir_format_oven_data_path)
             for oven_entry in oven_data:
                 infoseek_dids = []
-                assert (
-                    len(oven_entry["pos_cand_list"]) == 1
-                ), "Each oven entry should have only one positive candidate"
+                assert len(oven_entry["pos_cand_list"]) == 1, "Each oven entry should have only one positive candidate"
                 did = oven_entry["pos_cand_list"][0]
                 oven_cand = oven_1m_cand_dict[did]
                 src_content = json.loads(oven_cand["src_content"])
@@ -932,21 +826,13 @@ def main():
                             infoseek_dids.append(infoseek_did)
                 oven_entry["pos_cand_list"].extend(infoseek_dids)
 
-            mbeir_format_oven_data_merged_path = os.path.join(
-                oven_dir, f"mbeir_oven_{split}_merged.jsonl"
-            )
+            mbeir_format_oven_data_merged_path = os.path.join(oven_dir, f"mbeir_oven_{split}_merged.jsonl")
             save_list_as_jsonl(oven_data, mbeir_format_oven_data_merged_path, mode="w")
 
             # Print statistics
-            total_entries, data = count_entries_in_file(
-                mbeir_format_oven_data_merged_path
-            )
-            print(
-                f"MBEIR format OVEN merged {split} data saved to {mbeir_format_oven_data_merged_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_oven_data_merged_path}: {total_entries}"
-            )
+            total_entries, data = count_entries_in_file(mbeir_format_oven_data_merged_path)
+            print(f"MBEIR format OVEN merged {split} data saved to {mbeir_format_oven_data_merged_path}")
+            print(f"Total number of entries in {mbeir_format_oven_data_merged_path}: {total_entries}")
 
             # Build combined pool
             infoseek_cand_pool = load_mbeir_format_pool_file_as_dict(
@@ -964,18 +850,12 @@ def main():
         random.shuffle(mbeir_oven_val_data)
         new_oven_val_data = mbeir_oven_val_data[: len(mbeir_oven_val_data) // 2]
         new_oven_test_data = mbeir_oven_val_data[len(mbeir_oven_val_data) // 2 :]
-        mbeir_oven_new_val_data_path = os.path.join(
-            oven_dir, "mbeir_oven_new_val.jsonl"
-        )
-        mbeir_oven_new_test_data_path = os.path.join(
-            oven_dir, "mbeir_oven_new_test.jsonl"
-        )
+        mbeir_oven_new_val_data_path = os.path.join(oven_dir, "mbeir_oven_new_val.jsonl")
+        mbeir_oven_new_test_data_path = os.path.join(oven_dir, "mbeir_oven_new_test.jsonl")
         oven_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
             oven_candidate_pool_1m_path, doc_key_to_content=True, key_type="did"
         )
-        infoseek_cand_pool_file_path = os.path.join(
-            oven_dir, "mbeir_infoseek_cand_pool.jsonl"
-        )
+        infoseek_cand_pool_file_path = os.path.join(oven_dir, "mbeir_infoseek_cand_pool.jsonl")
         infoseek_cand_pool = load_mbeir_format_pool_file_as_dict(
             infoseek_cand_pool_file_path, doc_key_to_content=True, key_type="did"
         )
@@ -1009,12 +889,8 @@ def main():
         print(f"Number of candidates for task 8: {len(oven_task8_cand_pool)}")
 
         # Save the candidate pool
-        oven_task6_cand_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_task6_cand_pool.jsonl"
-        )
-        oven_task8_cand_pool_path = os.path.join(
-            oven_dir, "mbeir_oven_task8_cand_pool.jsonl"
-        )
+        oven_task6_cand_pool_path = os.path.join(oven_dir, "mbeir_oven_task6_cand_pool.jsonl")
+        oven_task8_cand_pool_path = os.path.join(oven_dir, "mbeir_oven_task8_cand_pool.jsonl")
         save_list_as_jsonl(oven_task6_cand_pool, oven_task6_cand_pool_path)
         save_list_as_jsonl(oven_task8_cand_pool, oven_task8_cand_pool_path)
         print(f"Saved task 6 candidate pool to {oven_task6_cand_pool_path}")
@@ -1052,9 +928,7 @@ def main():
             save_list_as_jsonl(task6_data, task6_data_path)
             save_list_as_jsonl(task8_data, task8_data_path)
 
-            infoseek_cand_pool_path = os.path.join(
-                oven_dir, "mbeir_infoseek_cand_pool.jsonl"
-            )
+            infoseek_cand_pool_path = os.path.join(oven_dir, "mbeir_infoseek_cand_pool.jsonl")
             infoseek_cand_pool = load_mbeir_format_pool_file_as_dict(
                 infoseek_cand_pool_path, doc_key_to_content=True, key_type="did"
             )
