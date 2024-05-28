@@ -460,8 +460,15 @@ def run_retrieval(config):
                     ):
                         doc_id = unhash_did(hashed_doc_id)
                         retrieved_cands.append(did_to_candidates[doc_id])
+                    retrieved_dict = {"query": query, "candidates": retrieved_cands}
+                    if retrieval_config.retrieve_image_text_pairs:
+                        # TODO(sahel): Populate the complement candidates by retrieving the top 1 candidate
+                        # for each retrieved candidate. The complement candidate will have the complementary
+                        # modality (i.e. image for text candidates, and text for image candidates).
+                        complement_candidates = []
+                        retrieved_dict["complement_candidates"] = complement_candidates
                     json.dump(
-                        {"query": query, "candidates": retrieved_cands},
+                        retrieved_dict,
                         retrieved_file_path,
                     )
                     retrieved_file_path.write("\n")
