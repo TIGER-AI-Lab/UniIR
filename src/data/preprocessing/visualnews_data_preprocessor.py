@@ -31,10 +31,10 @@ assert VISUALNEWS_DATASET_ID is not None, "Unknown dataset name!"
 
 
 def visualnews_to_mbeir_entry(
-        visualnews_entry,
-        candidate_pool,
-        mbeir_data_dir,
-        include_src_content=False,
+    visualnews_entry,
+    candidate_pool,
+    mbeir_data_dir,
+    include_src_content=False,
 ):
     """
     Convert Visual News entry format to MBEIR format.
@@ -69,7 +69,9 @@ def visualnews_to_mbeir_entry(
 
     # Note: we always store relative paths to MBEIR data directory
     # Here we remove "./" from the image path e.g. './guardian/images/.../...jpg'
-    img_path = os.path.join("mbeir_images", "visualnews_images", visualnews_entry["image_path"][2:])
+    img_path = os.path.join(
+        "mbeir_images", "visualnews_images", visualnews_entry["image_path"][2:]
+    )
     if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
         print(f"Warning: Invalid image: {img_path}")  # if the image is invalid, skip it
         return None
@@ -125,15 +127,17 @@ def visualnews_to_mbeir_entry(
 
 
 def visualnews_to_mbeir(
-        visualnews_data,
-        candidate_pool_file_path,
-        mbeir_data_dir,
-        include_src_content=False,
+    visualnews_data,
+    candidate_pool_file_path,
+    mbeir_data_dir,
+    include_src_content=False,
 ):
     mbeir_entries_merged = []
 
     # Load candidate pool
-    cand_pool_dict = load_mbeir_format_pool_file_as_dict(candidate_pool_file_path, doc_key_to_content=False)
+    cand_pool_dict = load_mbeir_format_pool_file_as_dict(
+        candidate_pool_file_path, doc_key_to_content=False
+    )
 
     for visualnews_entry in visualnews_data:
         mbeir_entries = visualnews_to_mbeir_entry(
@@ -148,9 +152,9 @@ def visualnews_to_mbeir(
 
 
 def generate_visualnews_candidate_pool(
-        visualnews_source_file_path,
-        visualnews_cand_pool_path,
-        mbeir_data_dir,
+    visualnews_source_file_path,
+    visualnews_cand_pool_path,
+    mbeir_data_dir,
 ):
     """
     Generate Visual News candidate pool in mbeir format.
@@ -166,8 +170,14 @@ def generate_visualnews_candidate_pool(
             for visualnews_entry in visualnews_data:
                 # Note: we always store relative paths to MBEIR data directory
                 # Here we remove "./" from the image path e.g. './guardian/images/.../...jpg'
-                img_path = os.path.join("mbeir_images", "visualnews_images", visualnews_entry["image_path"][2:])
-                caption = format_string(visualnews_entry["caption"])  # Capitalize the first letter of each sentence
+                img_path = os.path.join(
+                    "mbeir_images",
+                    "visualnews_images",
+                    visualnews_entry["image_path"][2:],
+                )
+                caption = format_string(
+                    visualnews_entry["caption"]
+                )  # Capitalize the first letter of each sentence
 
                 # Track if we've seen both the caption and image path
                 seen_both = caption in seen_txts and img_path in seen_image_paths
@@ -219,8 +229,12 @@ def split_data(data, train_samples, val_samples, test_samples):
         random.shuffle(source_data)
 
         train_data.extend(source_data[:train_samples])
-        val_data.extend(source_data[train_samples: train_samples + val_samples])
-        test_data.extend(source_data[train_samples + val_samples: train_samples + val_samples + test_samples])
+        val_data.extend(source_data[train_samples : train_samples + val_samples])
+        test_data.extend(
+            source_data[
+                train_samples + val_samples : train_samples + val_samples + test_samples
+            ]
+        )
 
     return train_data, val_data, test_data
 
@@ -281,13 +295,22 @@ def parse_arguments():
         help="Enable all processing steps: image processing, text processing, candidate pool generation, ",
     )
     parser.add_argument(
-        "--train_samples", type=int, default=25000, help="Number of samples for each news source in the training set."
+        "--train_samples",
+        type=int,
+        default=25000,
+        help="Number of samples for each news source in the training set.",
     )
     parser.add_argument(
-        "--val_samples", type=int, default=5000, help="Number of samples for each news source in the validation set."
+        "--val_samples",
+        type=int,
+        default=5000,
+        help="Number of samples for each news source in the validation set.",
     )
     parser.add_argument(
-        "--test_samples", type=int, default=5000, help="Number of samples for each news source in the test set."
+        "--test_samples",
+        type=int,
+        default=5000,
+        help="Number of samples for each news source in the test set.",
     )
     parser.add_argument(
         "--enable_training_candidate_pool",
@@ -320,9 +343,15 @@ def main():
     # So all the paths are hardcoded.
     visualnews_dir = os.path.join(args.mbeir_data_dir, args.visualnews_dir)
     visualnews_data_file_path = os.path.join(visualnews_dir, "origin", "data.json")
-    visualnews_images_dir = os.path.join(args.mbeir_data_dir, args.visualnews_images_dir)
-    visualnews_candidate_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_cand_pool.jsonl")
-    visualnews_1m_cand_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_1m_cand_pool.jsonl")
+    visualnews_images_dir = os.path.join(
+        args.mbeir_data_dir, args.visualnews_images_dir
+    )
+    visualnews_candidate_pool_path = os.path.join(
+        visualnews_dir, "mbeir_visualnews_cand_pool.jsonl"
+    )
+    visualnews_1m_cand_pool_path = os.path.join(
+        visualnews_dir, "mbeir_visualnews_1m_cand_pool.jsonl"
+    )
 
     # Process text(remove empty captions) This Could be removed.
     if args.enable_text_processing:
@@ -330,7 +359,9 @@ def main():
         # Print statistics
         total_entries, data = count_entries_in_file(visualnews_data_file_path)
         empty_captions = count_empty_captions(data)
-        print(f"Total number of entries in {visualnews_data_file_path}: {total_entries}")
+        print(
+            f"Total number of entries in {visualnews_data_file_path}: {total_entries}"
+        )
         print(f"Total number of empty captions: {len(empty_captions)}")
 
         # Remove entries with empty captions
@@ -350,15 +381,25 @@ def main():
         duplicate_captions_cleaned = check_duplicates(data, "caption")
 
         # Print cleaned data statistics
-        print(f"Total number of entries in {visualnews_data_file_path}: {total_entries}")
-        print(f"Number of duplicate image paths in cleaned data: {len(duplicate_images_cleaned)}")
-        print(f"Number of duplicate article paths in cleaned data: {len(duplicate_articles_cleaned)}")
-        print(f"Number of duplicate captions in cleaned data: {len(duplicate_captions_cleaned)}")
+        print(
+            f"Total number of entries in {visualnews_data_file_path}: {total_entries}"
+        )
+        print(
+            f"Number of duplicate image paths in cleaned data: {len(duplicate_images_cleaned)}"
+        )
+        print(
+            f"Number of duplicate article paths in cleaned data: {len(duplicate_articles_cleaned)}"
+        )
+        print(
+            f"Number of duplicate captions in cleaned data: {len(duplicate_captions_cleaned)}"
+        )
 
     # Process images
     if args.enable_image_processing:
         print(f"Processing images in {visualnews_images_dir}...")
-        parallel_process_image_directory(visualnews_images_dir, num_processes=cpu_count())
+        parallel_process_image_directory(
+            visualnews_images_dir, num_processes=cpu_count()
+        )
 
     # Generate candidate pool in MBEIR format
     if args.enable_candidate_pool:
@@ -375,7 +416,9 @@ def main():
     if args.enable_data_split:
         print(f"Splitting data into train, val, and test sets...")
         _, data = count_entries_in_file(visualnews_data_file_path)
-        train_data, val_data, test_data = split_data(data, args.train_samples, args.val_samples, args.test_samples)
+        train_data, val_data, test_data = split_data(
+            data, args.train_samples, args.val_samples, args.test_samples
+        )
         assert len(train_data) == args.train_samples * 4  # 4 news sources
         assert len(val_data) == args.val_samples * 4
         assert len(test_data) == args.test_samples * 4
@@ -385,20 +428,36 @@ def main():
         save_list_as_jsonl(test_data, os.path.join(visualnews_dir, "test.jsonl"))
 
         # Print statistics
-        total_entries, _ = count_entries_in_file(os.path.join(visualnews_dir, "train.jsonl"))
-        print(f"Total number of entries in {os.path.join(visualnews_dir, 'train.jsonl')}: {total_entries}")
-        total_entries, _ = count_entries_in_file(os.path.join(visualnews_dir, "val.jsonl"))
-        print(f"Total number of entries in {os.path.join(visualnews_dir, 'val.jsonl')}: {total_entries}")
-        total_entries, _ = count_entries_in_file(os.path.join(visualnews_dir, "test.jsonl"))
-        print(f"Total number of entries in {os.path.join(visualnews_dir, 'test.jsonl')}: {total_entries}")
+        total_entries, _ = count_entries_in_file(
+            os.path.join(visualnews_dir, "train.jsonl")
+        )
+        print(
+            f"Total number of entries in {os.path.join(visualnews_dir, 'train.jsonl')}: {total_entries}"
+        )
+        total_entries, _ = count_entries_in_file(
+            os.path.join(visualnews_dir, "val.jsonl")
+        )
+        print(
+            f"Total number of entries in {os.path.join(visualnews_dir, 'val.jsonl')}: {total_entries}"
+        )
+        total_entries, _ = count_entries_in_file(
+            os.path.join(visualnews_dir, "test.jsonl")
+        )
+        print(
+            f"Total number of entries in {os.path.join(visualnews_dir, 'test.jsonl')}: {total_entries}"
+        )
 
     # Convert VisualNews data to MBEIR format
     if args.enable_mbeir_conversion:
         print(f"Converting split VisualNews data to MBEIR format.")
         data_split_list = ["train", "val", "test"]
         for data_split in data_split_list:
-            visualnews_data_file_path = os.path.join(visualnews_dir, f"{data_split}.jsonl")
-            mbeir_format_visualnews_path = os.path.join(visualnews_dir, f"mbeir_visualnews_{data_split}.jsonl")
+            visualnews_data_file_path = os.path.join(
+                visualnews_dir, f"{data_split}.jsonl"
+            )
+            mbeir_format_visualnews_path = os.path.join(
+                visualnews_dir, f"mbeir_visualnews_{data_split}.jsonl"
+            )
             visualnews_data = load_jsonl_as_list(visualnews_data_file_path)
             mbeir_entries = visualnews_to_mbeir(
                 visualnews_data,
@@ -418,8 +477,12 @@ def main():
 
             # Print statistics
             total_entries, data = count_entries_in_file(mbeir_format_visualnews_path)
-            print(f"MBEIR format VisualNews data saved to {mbeir_format_visualnews_path}")
-            print(f"Total number of entries in {mbeir_format_visualnews_path}: {total_entries}")
+            print(
+                f"MBEIR format VisualNews data saved to {mbeir_format_visualnews_path}"
+            )
+            print(
+                f"Total number of entries in {mbeir_format_visualnews_path}: {total_entries}"
+            )
             visualnews_cand_pool = load_mbeir_format_pool_file_as_dict(
                 visualnews_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -453,11 +516,17 @@ def main():
         # Random sample 1M candidates
         random.shuffle(visualnews_cand_pool_without_skip_set)
         augment_size = 800000
-        print(f"Sample {augment_size} candidates from {len(visualnews_cand_pool_without_skip_set)} candidates")
-        visualnews_cand_pool_without_skip_set = visualnews_cand_pool_without_skip_set[:augment_size]
+        print(
+            f"Sample {augment_size} candidates from {len(visualnews_cand_pool_without_skip_set)} candidates"
+        )
+        visualnews_cand_pool_without_skip_set = visualnews_cand_pool_without_skip_set[
+            :augment_size
+        ]
 
         # Reassign document ids
-        visualnews_1m_cand_pool = visualnews_cand_pool_skip_set + visualnews_cand_pool_without_skip_set
+        visualnews_1m_cand_pool = (
+            visualnews_cand_pool_skip_set + visualnews_cand_pool_without_skip_set
+        )
         document_id_start = 1
         oldid_newdid_map = {}
         for i, entry in enumerate(visualnews_1m_cand_pool):
@@ -466,13 +535,17 @@ def main():
             entry["did"] = f"{VISUALNEWS_DATASET_ID}:{document_id_start + i}"
             newdid = entry["did"]
             oldid_newdid_map[olddid] = newdid
-        save_list_as_jsonl(visualnews_1m_cand_pool, visualnews_1m_cand_pool_path, mode="w")
+        save_list_as_jsonl(
+            visualnews_1m_cand_pool, visualnews_1m_cand_pool_path, mode="w"
+        )
         print_mbeir_format_cand_pool_stats(visualnews_1m_cand_pool_path)
 
         # Reassign dids in the data
         for split in ["train", "val", "test"]:
             data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_{split}.jsonl")
-            new_data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_new_{split}.jsonl")
+            new_data_path = os.path.join(
+                visualnews_dir, f"mbeir_visualnews_new_{split}.jsonl"
+            )
             visualnews_data = load_jsonl_as_list(data_path)
             for visualnews_entry in visualnews_data:
                 new_pos_cand_list = []
@@ -510,8 +583,12 @@ def main():
         print(f"Task 3 candidate pool size: {len(visualnews_task3_cand_pool)}")
 
         # Save the candidate pool
-        visualnews_task0_cand_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_task0_cand_pool.jsonl")
-        visualnews_task3_cand_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_task3_cand_pool.jsonl")
+        visualnews_task0_cand_pool_path = os.path.join(
+            visualnews_dir, "mbeir_visualnews_task0_cand_pool.jsonl"
+        )
+        visualnews_task3_cand_pool_path = os.path.join(
+            visualnews_dir, "mbeir_visualnews_task3_cand_pool.jsonl"
+        )
         save_list_as_jsonl(visualnews_task0_cand_pool, visualnews_task0_cand_pool_path)
         save_list_as_jsonl(visualnews_task3_cand_pool, visualnews_task3_cand_pool_path)
         print(f"Saved task 0 candidate pool to {visualnews_task0_cand_pool_path}")
@@ -522,13 +599,23 @@ def main():
     # Split the query data according to task
     if args.split_query_data_by_task:
         print("Split the query data according to task")
-        visualnews_task0_cand_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_task0_cand_pool.jsonl")
-        visualnews_task3_cand_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_task3_cand_pool.jsonl")
+        visualnews_task0_cand_pool_path = os.path.join(
+            visualnews_dir, "mbeir_visualnews_task0_cand_pool.jsonl"
+        )
+        visualnews_task3_cand_pool_path = os.path.join(
+            visualnews_dir, "mbeir_visualnews_task3_cand_pool.jsonl"
+        )
 
         for split in ["val", "test"]:
-            data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_new_{split}.jsonl")
-            task0_data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_task0_{split}.jsonl")
-            task3_data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_task3_{split}.jsonl")
+            data_path = os.path.join(
+                visualnews_dir, f"mbeir_visualnews_new_{split}.jsonl"
+            )
+            task0_data_path = os.path.join(
+                visualnews_dir, f"mbeir_visualnews_task0_{split}.jsonl"
+            )
+            task3_data_path = os.path.join(
+                visualnews_dir, f"mbeir_visualnews_task3_{split}.jsonl"
+            )
 
             # Load the data
             visualnews_data = load_jsonl_as_list(data_path)
@@ -559,8 +646,12 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        visualnews_train_candidate_pool_path = os.path.join(visualnews_dir, "mbeir_visualnews_train_cand_pool.jsonl")
-        mbeir_format_visualnews_train_data_path = os.path.join(visualnews_dir, f"mbeir_visualnews_new_train.jsonl")
+        visualnews_train_candidate_pool_path = os.path.join(
+            visualnews_dir, "mbeir_visualnews_train_cand_pool.jsonl"
+        )
+        mbeir_format_visualnews_train_data_path = os.path.join(
+            visualnews_dir, f"mbeir_visualnews_new_train.jsonl"
+        )
         assert os.path.exists(
             mbeir_format_visualnews_train_data_path
         ), f"File {mbeir_format_visualnews_train_data_path} does not exist"
@@ -571,8 +662,12 @@ def main():
             visualnews_1m_cand_pool_path, doc_key_to_content=True, key_type="did"
         )
         print(f"Load candidate pool from {visualnews_1m_cand_pool_path}")
-        mbeir_format_visualnews_train_data = load_jsonl_as_list(mbeir_format_visualnews_train_data_path)
-        print(f"Load {len(mbeir_format_visualnews_train_data)} entries from {mbeir_format_visualnews_train_data_path}")
+        mbeir_format_visualnews_train_data = load_jsonl_as_list(
+            mbeir_format_visualnews_train_data_path
+        )
+        print(
+            f"Load {len(mbeir_format_visualnews_train_data)} entries from {mbeir_format_visualnews_train_data_path}"
+        )
 
         for entry in mbeir_format_visualnews_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
@@ -583,13 +678,22 @@ def main():
                 else:
                     if visualnews_train_candidate_pool[did] != cand:
                         print(
-                            f"Duplicate did for two candidates found: {visualnews_train_candidate_pool[did]} and {cand}")
+                            f"Duplicate did for two candidates found: {visualnews_train_candidate_pool[did]} and {cand}"
+                        )
 
         # Save the training candidate pool
-        visualnews_train_candidate_pool_list = list(visualnews_train_candidate_pool.values())
-        visualnews_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(visualnews_train_candidate_pool_list, visualnews_train_candidate_pool_path)
-        print(f"Saved training candidate pool to {visualnews_train_candidate_pool_path}")
+        visualnews_train_candidate_pool_list = list(
+            visualnews_train_candidate_pool.values()
+        )
+        visualnews_train_candidate_pool_list.sort(
+            key=lambda x: int(x["did"].split(":")[1])
+        )
+        save_list_as_jsonl(
+            visualnews_train_candidate_pool_list, visualnews_train_candidate_pool_path
+        )
+        print(
+            f"Saved training candidate pool to {visualnews_train_candidate_pool_path}"
+        )
         print_mbeir_format_cand_pool_stats(visualnews_train_candidate_pool_path)
 
 

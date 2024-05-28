@@ -77,7 +77,9 @@ def cirr_to_mbeir_entry(
     # Note: store query image inside the candidate pool is fine since this is an (image, text) retrieval task.
     _query = candidate_pool.get(cirr_entry["reference"], None)
     if not _query:
-        print(f"Warning: Can not fetch query image path for reference {cirr_entry['reference']}")
+        print(
+            f"Warning: Can not fetch query image path for reference {cirr_entry['reference']}"
+        )
         return None  # query image is not in the candidate pool
     query_img_path = _query["img_path"]
 
@@ -118,7 +120,9 @@ def cirr_to_mbeir_entry(
         if value == 1.0:
             mbeir_entry["pos_cand_list"].append(candidate["did"])
         else:
-            mbeir_entry["neg_cand_list"].append(candidate["did"])  # For score 0.2 0.5 -1 we use as negative
+            mbeir_entry["neg_cand_list"].append(
+                candidate["did"]
+            )  # For score 0.2 0.5 -1 we use as negative
 
     # We need at least one positive candidate
     if len(mbeir_entry["pos_cand_list"]) == 0:
@@ -170,7 +174,10 @@ def get_deduplicated_cirr_data(cirr_data):
             previous_entry["img_set_list"].append(cirr_entry["img_set"])
 
             # Merge 'target_soft' dictionaries (as before)
-            merged_target_soft = {**previous_entry["target_soft"], **cirr_entry["target_soft"]}
+            merged_target_soft = {
+                **previous_entry["target_soft"],
+                **cirr_entry["target_soft"],
+            }
             previous_entry["target_soft"] = merged_target_soft
 
             # print(f"\n Warning: Duplicate data entry: {data_id}")
@@ -181,7 +188,9 @@ def get_deduplicated_cirr_data(cirr_data):
     return list(deduplicated_data.values())
 
 
-def cirr_to_mbeir(cirr_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True):
+def cirr_to_mbeir(
+    cirr_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True
+):
     """
     cirr dataset to MBEIR format.
     """
@@ -202,7 +211,9 @@ def cirr_to_mbeir(cirr_data, candidate_pool_file_path, mbeir_data_dir, include_s
     return mbeir_entries
 
 
-def generate_cirr_candidate_pool(cirr_images_dir, cirr_candidate_pool_path, mbeir_data_dir, include_src_content=True):
+def generate_cirr_candidate_pool(
+    cirr_images_dir, cirr_candidate_pool_path, mbeir_data_dir, include_src_content=True
+):
     """
     Generate CIRR candidate pool in mbeir format and save it to a jsonl file.
     Here is the expected directory structure of the cirr_images_dir:
@@ -236,7 +247,9 @@ def generate_cirr_candidate_pool(cirr_images_dir, cirr_candidate_pool_path, mbei
         path = os.path.join(cirr_images_dir, "train", subdir)
         if os.path.isdir(path):
             image_paths.update(
-                os.path.join("train", subdir, fname) for fname in os.listdir(path) if fname.endswith(".jpg")
+                os.path.join("train", subdir, fname)
+                for fname in os.listdir(path)
+                if fname.endswith(".jpg")
             )
 
     document_id = 1  # Note: We start from 1 for document IDs
@@ -323,7 +336,9 @@ def generate_cirr_candidate_pool_from_splits(
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Format CIRR images and refactor dataset to MBEIR format.")
+    parser = argparse.ArgumentParser(
+        description="Format CIRR images and refactor dataset to MBEIR format."
+    )
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -390,7 +405,10 @@ def main():
     if args.enable_candidate_pool:
         print("Generating CIRR candidate pool in mbeir format...")
         generate_cirr_candidate_pool_from_splits(
-            cirr_image_splits_dir, cirr_candidate_pool_path, args.mbeir_data_dir, include_src_content=True
+            cirr_image_splits_dir,
+            cirr_candidate_pool_path,
+            args.mbeir_data_dir,
+            include_src_content=True,
         )
         print(f"Candidate pool saved to {cirr_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(cirr_candidate_pool_path)
@@ -404,7 +422,9 @@ def main():
             # ("test", "cap.rc2.test1.json"),
         ]
         for split, data_path in data_set_list:
-            mbeir_format_cirr_data_path = os.path.join(cirr_dir, f"mbeir_cirr_{split}.jsonl")
+            mbeir_format_cirr_data_path = os.path.join(
+                cirr_dir, f"mbeir_cirr_{split}.jsonl"
+            )
             cirr_data_path = os.path.join(cirr_captions_dir, data_path)
             with open(cirr_data_path, "r") as file:
                 cirr_data = json.load(file)
@@ -426,8 +446,12 @@ def main():
 
             # Print statistics
             total_entries, _data = count_entries_in_file(mbeir_format_cirr_data_path)
-            print(f"MBEIR format CIRR {split} data saved to {mbeir_format_cirr_data_path}")
-            print(f"Total number of entries in {mbeir_format_cirr_data_path}: {total_entries}")
+            print(
+                f"MBEIR format CIRR {split} data saved to {mbeir_format_cirr_data_path}"
+            )
+            print(
+                f"Total number of entries in {mbeir_format_cirr_data_path}: {total_entries}"
+            )
             cirr_cand_pool = load_mbeir_format_pool_file_as_dict(
                 cirr_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -435,7 +459,9 @@ def main():
 
     # Split training set into val and move the val set to the test set
     if args.split_train_into_val_and_val_into_test:
-        print("Split the CIRR training set into val and move the val set to the test set...")
+        print(
+            "Split the CIRR training set into val and move the val set to the test set..."
+        )
         print("2000 of the CIRR training set will be moved to the val set.")
         mbeir_cirr_train_data_path = os.path.join(cirr_dir, "mbeir_cirr_train.jsonl")
         mbeir_cirr_train_data = load_jsonl_as_list(mbeir_cirr_train_data_path)
@@ -443,17 +469,25 @@ def main():
         random.shuffle(mbeir_cirr_train_data)
         cirr_new_val_data = mbeir_cirr_train_data[:2000]
         cirr_new_train_data = mbeir_cirr_train_data[2000:]
-        mbeir_cirr_new_val_data_path = os.path.join(cirr_dir, "mbeir_cirr_new_val.jsonl")
-        mbeir_cirr_new_train_data_path = os.path.join(cirr_dir, "mbeir_cirr_new_train.jsonl")
+        mbeir_cirr_new_val_data_path = os.path.join(
+            cirr_dir, "mbeir_cirr_new_val.jsonl"
+        )
+        mbeir_cirr_new_train_data_path = os.path.join(
+            cirr_dir, "mbeir_cirr_new_train.jsonl"
+        )
         mbeir_cirr_val_data_path = os.path.join(cirr_dir, "mbeir_cirr_val.jsonl")
         cirr_new_test_data = load_jsonl_as_list(mbeir_cirr_val_data_path)
-        mbeir_cirr_new_test_data_path = os.path.join(cirr_dir, "mbeir_cirr_new_test.jsonl")
+        mbeir_cirr_new_test_data_path = os.path.join(
+            cirr_dir, "mbeir_cirr_new_test.jsonl"
+        )
 
         # Load the candidate pool
         cirr_cand_pool = load_mbeir_format_pool_file_as_dict(
             cirr_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        save_list_as_jsonl(cirr_new_train_data, mbeir_cirr_new_train_data_path, mode="w")
+        save_list_as_jsonl(
+            cirr_new_train_data, mbeir_cirr_new_train_data_path, mode="w"
+        )
         print(f"Saved new training data to {mbeir_cirr_new_train_data_path}")
         print_mbeir_format_dataset_stats(cirr_new_train_data, cirr_cand_pool)
 
@@ -468,8 +502,12 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        cirr_train_candidate_pool_path = os.path.join(cirr_dir, "mbeir_cirr_train_cand_pool.jsonl")
-        mbeir_format_cirr_train_data_path = os.path.join(cirr_dir, f"mbeir_cirr_new_train.jsonl")
+        cirr_train_candidate_pool_path = os.path.join(
+            cirr_dir, "mbeir_cirr_train_cand_pool.jsonl"
+        )
+        mbeir_format_cirr_train_data_path = os.path.join(
+            cirr_dir, f"mbeir_cirr_new_train.jsonl"
+        )
         assert os.path.exists(
             mbeir_format_cirr_train_data_path
         ), f"File {mbeir_format_cirr_train_data_path} does not exist"
@@ -479,7 +517,9 @@ def main():
         cirr_cand_pool = load_mbeir_format_pool_file_as_dict(
             cirr_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_cirr_train_data = load_jsonl_as_list(mbeir_format_cirr_train_data_path)
+        mbeir_format_cirr_train_data = load_jsonl_as_list(
+            mbeir_format_cirr_train_data_path
+        )
         for entry in mbeir_format_cirr_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -488,12 +528,16 @@ def main():
                     cirr_train_candidate_pool[did] = cand
                 else:
                     if cirr_train_candidate_pool[did] != cand:
-                        print(f"Duplicate did for two candidates found: {cirr_train_candidate_pool[did]} and {cand}")
+                        print(
+                            f"Duplicate did for two candidates found: {cirr_train_candidate_pool[did]} and {cand}"
+                        )
 
         # Save the training candidate pool
         cirr_train_candidate_pool_list = list(cirr_train_candidate_pool.values())
         cirr_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(cirr_train_candidate_pool_list, cirr_train_candidate_pool_path)
+        save_list_as_jsonl(
+            cirr_train_candidate_pool_list, cirr_train_candidate_pool_path
+        )
         print(f"Saved training candidate pool to {cirr_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(cirr_train_candidate_pool_path)
 

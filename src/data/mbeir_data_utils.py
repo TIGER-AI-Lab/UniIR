@@ -27,7 +27,7 @@ def build_mbeir_dataset_from_config(config, img_preprocess_fn, tokenizer, datase
         )
         cand_pool_collator = MBEIRCandidatePoolCollator(
             tokenizer=tokenizer,
-            image_size=tuple(map(int, data_config.image_size.split(','))),
+            image_size=tuple(map(int, data_config.image_size.split(","))),
         )
         return cand_pool_dataset, cand_pool_collator
 
@@ -60,15 +60,19 @@ def build_mbeir_dataset_from_config(config, img_preprocess_fn, tokenizer, datase
     )
     collector = MBEIRMainCollator(
         tokenizer=tokenizer,
-        image_size=tuple(map(int, data_config.image_size.split(','))),
+        image_size=tuple(map(int, data_config.image_size.split(","))),
         mode=mode,
     )
     return dataset, collector
 
 
-def build_distributed_sampler_list(dataset_list, shuffle_list, num_tasks_list, global_rank_list):
+def build_distributed_sampler_list(
+    dataset_list, shuffle_list, num_tasks_list, global_rank_list
+):
     samplers = []
-    for dataset, shuffle, num_tasks, global_rank in zip(dataset_list, shuffle_list, num_tasks_list, global_rank_list):
+    for dataset, shuffle, num_tasks, global_rank in zip(
+        dataset_list, shuffle_list, num_tasks_list, global_rank_list
+    ):
         sampler = torch.utils.data.DistributedSampler(
             dataset, num_replicas=num_tasks, rank=global_rank, shuffle=shuffle
         )
@@ -76,10 +80,12 @@ def build_distributed_sampler_list(dataset_list, shuffle_list, num_tasks_list, g
     return samplers
 
 
-def build_dataloader_list(datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns):
+def build_dataloader_list(
+    datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns
+):
     loaders = []
     for dataset, sampler, bs, n_worker, is_train, collate_fn in zip(
-            datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns
+        datasets, samplers, batch_size_list, num_workers, is_trains, collate_fns
     ):
         if is_train:
             shuffle = sampler is None
