@@ -35,7 +35,9 @@ def load_and_upsample(file_path, target_size, enable_upsampling):
     return data, original_size
 
 
-def unify_upsample_mbeir_data(data_dir, data_split, upsample, datasets_info, shuffle=True):
+def unify_upsample_mbeir_data(
+    data_dir, data_split, upsample, datasets_info, shuffle=True
+):
     # Load and concatenate
     print(f"Unify {data_split} data...")
     union_data = []
@@ -44,29 +46,42 @@ def unify_upsample_mbeir_data(data_dir, data_split, upsample, datasets_info, shu
         if dataset_info["include"]:
             file_path = os.path.join(data_dir, f"mbeir_{name}_{data_split}.jsonl")
             if upsample:
-                data, _ = load_and_upsample(file_path, dataset_info["target"], dataset_info["up_sampling"])
+                data, _ = load_and_upsample(
+                    file_path, dataset_info["target"], dataset_info["up_sampling"]
+                )
                 print(
                     f"Dataset {name}, Perform Up-sampling: {dataset_info['up_sampling']}, "
                     f"Original Size: {dataset_info['original']}, New Size: {len(data)}"
                 )
             else:
                 data = load_jsonl_as_list(file_path)
-                print(f"Dataset {name}, Perform Up-sampling: {dataset_info['up_sampling']}, Size: {len(data)}")
+                print(
+                    f"Dataset {name}, Perform Up-sampling: {dataset_info['up_sampling']}, Size: {len(data)}"
+                )
             union_data.extend(data)
         else:
-            print(f"Dataset {name}, Not included in the final aggregated {data_split} dataset")
+            print(
+                f"Dataset {name}, Not included in the final aggregated {data_split} dataset"
+            )
 
     if shuffle:
         # Shuffle the unified dataset
         random.shuffle(union_data)
     else:
         # Sort the unified dataset
-        union_data.sort(key=lambda x: (int(x["qid"].split(":")[0]), int(x["qid"].split(":")[1])))
+        union_data.sort(
+            key=lambda x: (int(x["qid"].split(":")[0]), int(x["qid"].split(":")[1]))
+        )
 
     return union_data
 
 
-def unify_mbeir_cand_pool(cand_pool_dir, dataset_to_cand_pool_file_middle_name_map, datasets_info, shuffle=False):
+def unify_mbeir_cand_pool(
+    cand_pool_dir,
+    dataset_to_cand_pool_file_middle_name_map,
+    datasets_info,
+    shuffle=False,
+):
     print(f"Unify all candidate pools from {cand_pool_dir}...")
     union_cand_pool = []
     for name, dataset_info in datasets_info.items():
@@ -81,14 +96,18 @@ def unify_mbeir_cand_pool(cand_pool_dir, dataset_to_cand_pool_file_middle_name_m
                 union_cand_pool.extend(cand_pool)
             print(f"Aggregated dataset {name} candidate pool")
         else:
-            print(f"Dataset {name} candidate pool, Not included in the final aggregated candidate pool")
+            print(
+                f"Dataset {name} candidate pool, Not included in the final aggregated candidate pool"
+            )
 
     if shuffle:
         # Shuffle the unified candidate pool
         random.shuffle(union_cand_pool)
     else:
         # Sort the unified candidate pool
-        union_cand_pool.sort(key=lambda x: (int(x["did"].split(":")[0]), int(x["did"].split(":")[1])))
+        union_cand_pool.sort(
+            key=lambda x: (int(x["did"].split(":")[0]), int(x["did"].split(":")[1]))
+        )
 
     return union_cand_pool
 
@@ -227,21 +246,33 @@ def main():
         for name, dataset_info in datasets_info.items():
             name = name.lower()
             if dataset_info["include"]:
-                file_path = os.path.join(train_cand_pool_dir, f"mbeir_{name}_train_cand_pool.jsonl")
+                file_path = os.path.join(
+                    train_cand_pool_dir, f"mbeir_{name}_train_cand_pool.jsonl"
+                )
                 data = load_jsonl_as_list(file_path)
                 union_train_cand_pool.extend(data)
                 print(f"Unify dataset {name} train candidate pool")
             else:
-                print(f"Dataset {name} train candidate pool, Not included in the final aggregated train candidate pool")
+                print(
+                    f"Dataset {name} train candidate pool, Not included in the final aggregated train candidate pool"
+                )
 
         # Sort the unified candidate pool
-        union_train_cand_pool.sort(key=lambda x: (int(x["did"].split(":")[0]), int(x["did"].split(":")[1])))
+        union_train_cand_pool.sort(
+            key=lambda x: (int(x["did"].split(":")[0]), int(x["did"].split(":")[1]))
+        )
 
         # Save to the new JSONL file
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
         save_list_as_jsonl(union_train_cand_pool, union_train_cand_pool_file_path)
-        print(f"Saved union training candidate pool to {union_train_cand_pool_file_path}")
-        print_mbeir_format_cand_pool_stats(union_train_cand_pool_file_path, print_duplicate=False)
+        print(
+            f"Saved union training candidate pool to {union_train_cand_pool_file_path}"
+        )
+        print_mbeir_format_cand_pool_stats(
+            union_train_cand_pool_file_path, print_duplicate=False
+        )
 
     # Step 1.
     if args.generate_union_test_cand_pool:
@@ -268,10 +299,14 @@ def main():
             datasets_info=datasets_info,
             shuffle=False,
         )
-        union_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_test_cand_pool.jsonl")
+        union_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_test_cand_pool.jsonl"
+        )
         save_list_as_jsonl(union_cand_pool, union_cand_pool_file_path)
         print(f"Saved union candidate pool to {union_cand_pool_file_path}")
-        print_mbeir_format_cand_pool_stats(union_cand_pool_file_path, print_duplicate=False)
+        print_mbeir_format_cand_pool_stats(
+            union_cand_pool_file_path, print_duplicate=False
+        )
 
     # Step 1.1
     # The union all pool contains all the candidates from all the datasets from all the splits
@@ -297,10 +332,14 @@ def main():
             datasets_info=datasets_info,
             shuffle=False,
         )
-        union_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_all_cand_pool.jsonl")
+        union_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_all_cand_pool.jsonl"
+        )
         save_list_as_jsonl(union_cand_pool, union_cand_pool_file_path)
         print(f"Saved union candidate pool to {union_cand_pool_file_path}")
-        print_mbeir_format_cand_pool_stats(union_cand_pool_file_path, print_duplicate=False)
+        print_mbeir_format_cand_pool_stats(
+            union_cand_pool_file_path, print_duplicate=False
+        )
 
     # Step 2.
     if args.unify_train_data:
@@ -311,10 +350,16 @@ def main():
             datasets_info=datasets_info,
             shuffle=True,
         )
-        union_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_train.jsonl")
+        union_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_train.jsonl"
+        )
         # We are using train candidate pool since MSCOCO training and val set is not included in the union pool
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
-        save_and_print_mbeir_format_dataset_stats(union_data, union_train_file_path, union_train_cand_pool_file_path)
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
+        save_and_print_mbeir_format_dataset_stats(
+            union_data, union_train_file_path, union_train_cand_pool_file_path
+        )
 
     if args.unify_and_upsample_train_data:
         union_data = unify_upsample_mbeir_data(
@@ -324,10 +369,16 @@ def main():
             datasets_info=datasets_info,
             shuffle=True,
         )
-        union_up_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_up_train.jsonl")
+        union_up_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_up_train.jsonl"
+        )
         # We are using train candidate pool since MSCOCO training and val is not included in the union pool
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
-        save_and_print_mbeir_format_dataset_stats(union_data, union_up_train_file_path, union_train_cand_pool_file_path)
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
+        save_and_print_mbeir_format_dataset_stats(
+            union_data, union_up_train_file_path, union_train_cand_pool_file_path
+        )
 
     # Step 3.
     if args.assign_task_ids:
@@ -335,7 +386,9 @@ def main():
         print("Assigning task ids to datasets...")
         for split in ["train", "val", "test", os.path.join("train", "union_train")]:
             if "train" in split:
-                cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
+                cand_pool_file_path = os.path.join(
+                    union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+                )
                 cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                     cand_pool_file_path, doc_key_to_content=True, key_type="did"
                 )
@@ -350,11 +403,14 @@ def main():
                         parts = file_name_no_ext.split("_")
                         dataset_split = parts[-1]
                         middle_name = "_".join(parts[1:-1])  # e.g. oven_task6
-                        cand_pool_file_path = os.path.join(cand_pool_dir, "mbeir_" + middle_name + "_cand_pool.jsonl")
+                        cand_pool_file_path = os.path.join(
+                            cand_pool_dir, "mbeir_" + middle_name + "_cand_pool.jsonl"
+                        )
                         # Hack for MSCOCO dataset
                         if "mscoco" in middle_name:
                             cand_pool_file_path = os.path.join(
-                                cand_pool_dir, f"mbeir_{middle_name}_{split}_cand_pool.jsonl"
+                                cand_pool_dir,
+                                f"mbeir_{middle_name}_{split}_cand_pool.jsonl",
                             )
                         print(f"Loading candidate pool from {cand_pool_file_path}...")
                         cand_pool_dict = load_mbeir_format_pool_file_as_dict(
@@ -399,21 +455,29 @@ def main():
             val_data_file_middle_names = dataset_to_val_data_file_middle_name_map[name]
             if dataset_info["include"]:
                 for val_data_file_middle_name in val_data_file_middle_names:
-                    val_data_file_path = os.path.join(val_data_dir, f"mbeir_{val_data_file_middle_name}_val.jsonl")
+                    val_data_file_path = os.path.join(
+                        val_data_dir, f"mbeir_{val_data_file_middle_name}_val.jsonl"
+                    )
                     print(f"Loading validation data from {val_data_file_path}...")
                     val_data = load_jsonl_as_list(val_data_file_path)
                     union_val_data.extend(val_data)
                 print(f"Aggregated dataset {name} validation data")
             else:
-                print(f"Dataset {name} validation data, Not included in the final aggregated validation data")
+                print(
+                    f"Dataset {name} validation data, Not included in the final aggregated validation data"
+                )
 
         # Sort the unified validation data
-        union_val_data.sort(key=lambda x: (int(x["qid"].split(":")[0]), int(x["qid"].split(":")[1])))
+        union_val_data.sort(
+            key=lambda x: (int(x["qid"].split(":")[0]), int(x["qid"].split(":")[1]))
+        )
 
         # Save to the new JSONL file
         union_val_data_dir = os.path.join(args.mbeir_data_dir, "val", "union_val")
         os.makedirs(union_val_data_dir, exist_ok=True)
-        union_val_data_file_path = os.path.join(union_val_data_dir, "mbeir_union_val.jsonl")
+        union_val_data_file_path = os.path.join(
+            union_val_data_dir, "mbeir_union_val.jsonl"
+        )
         save_list_as_jsonl(union_val_data, union_val_data_file_path)
         print(f"Saved union validation data to {union_val_data_file_path}")
 
@@ -441,10 +505,16 @@ def main():
         )
         # Save to the new JSONL file
         union_pool_dir = os.path.join(cand_pool_dir, "union_pool")
-        union_val_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_val_cand_pool.jsonl")
+        union_val_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_val_cand_pool.jsonl"
+        )
         save_list_as_jsonl(union_val_cand_pool, union_val_cand_pool_file_path)
-        print(f"Saved union validation candidate pool to {union_val_cand_pool_file_path}")
-        print_mbeir_format_cand_pool_stats(union_val_cand_pool_file_path, print_duplicate=False)
+        print(
+            f"Saved union validation candidate pool to {union_val_cand_pool_file_path}"
+        )
+        print_mbeir_format_cand_pool_stats(
+            union_val_cand_pool_file_path, print_duplicate=False
+        )
 
         # Trim the union validation candidate pool to only contain candidates from the union validation data
         union_val_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
@@ -458,10 +528,19 @@ def main():
                 trimmed_union_val_cand_pool[did] = union_val_cand_pool_dict[did]
 
         # Save to the new JSONL file
-        trimmed_union_val_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_val_cand_pool.jsonl")
-        save_list_as_jsonl(list(trimmed_union_val_cand_pool.values()), trimmed_union_val_cand_pool_file_path)
-        print(f"Saved trimmed union validation candidate pool to {trimmed_union_val_cand_pool_file_path}")
-        print_mbeir_format_cand_pool_stats(trimmed_union_val_cand_pool_file_path, print_duplicate=False)
+        trimmed_union_val_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_val_cand_pool.jsonl"
+        )
+        save_list_as_jsonl(
+            list(trimmed_union_val_cand_pool.values()),
+            trimmed_union_val_cand_pool_file_path,
+        )
+        print(
+            f"Saved trimmed union validation candidate pool to {trimmed_union_val_cand_pool_file_path}"
+        )
+        print_mbeir_format_cand_pool_stats(
+            trimmed_union_val_cand_pool_file_path, print_duplicate=False
+        )
 
         # Print unified validation data stats
         print_mbeir_format_dataset_stats(union_val_data, union_val_cand_pool_dict)
@@ -484,7 +563,9 @@ def main():
                     dataset_split = parts[-1]
                     middle_name = "_".join(parts[1:-1])
 
-                    qrels_file = os.path.join(qrels_dir, f"mbeir_{middle_name}_{dataset_split}_qrels.txt")
+                    qrels_file = os.path.join(
+                        qrels_dir, f"mbeir_{middle_name}_{dataset_split}_qrels.txt"
+                    )
                     print(f"\nGenerating qrels file {qrels_file}...")
 
                     mbeir_data = load_jsonl_as_list(os.path.join(data_dir, file_name))
@@ -502,7 +583,9 @@ def main():
     # Exp 1 Held N dataset out
     if args.generate_held_n_dataset_out_data:
         # Load union upsampled train data
-        union_up_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_up_train.jsonl")
+        union_up_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_up_train.jsonl"
+        )
         union_up_train_data = load_jsonl_as_list(union_up_train_file_path)
         held_in_data = []
         held_out_dataset_names = ["OVEN", "CIRR", "WebQA", "VisualNews", "Fashion200K"]
@@ -512,14 +595,22 @@ def main():
             held_in_data.append(entry)
         held_in_data_dir = os.path.join(train_data_dir, "EXP", "HeldNDataOut")
         os.makedirs(held_in_data_dir, exist_ok=True)
-        held_in_data_file_path = os.path.join(held_in_data_dir, "mbeir_held_n_dataset_out_train.jsonl")
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
-        save_and_print_mbeir_format_dataset_stats(held_in_data, held_in_data_file_path, union_train_cand_pool_file_path)
+        held_in_data_file_path = os.path.join(
+            held_in_data_dir, "mbeir_held_n_dataset_out_train.jsonl"
+        )
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
+        save_and_print_mbeir_format_dataset_stats(
+            held_in_data, held_in_data_file_path, union_train_cand_pool_file_path
+        )
 
     # Exp 2. Held N task out
     if args.generate_held_n_task_out_data:
         # Load union upsampled train data
-        union_up_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_up_train.jsonl")
+        union_up_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_up_train.jsonl"
+        )
         union_up_train_data = load_jsonl_as_list(union_up_train_file_path)
         held_in_data = []
         held_out_task_id = [0, 2, 8]
@@ -529,14 +620,22 @@ def main():
             held_in_data.append(entry)
         held_in_data_dir = os.path.join(train_data_dir, "EXP", "HeldNTaskOut")
         os.makedirs(held_in_data_dir, exist_ok=True)
-        held_in_data_file_path = os.path.join(held_in_data_dir, "mbeir_held_n_task_out_train.jsonl")
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
-        save_and_print_mbeir_format_dataset_stats(held_in_data, held_in_data_file_path, union_train_cand_pool_file_path)
+        held_in_data_file_path = os.path.join(
+            held_in_data_dir, "mbeir_held_n_task_out_train.jsonl"
+        )
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
+        save_and_print_mbeir_format_dataset_stats(
+            held_in_data, held_in_data_file_path, union_train_cand_pool_file_path
+        )
 
     # Exp 3 Held 1 domain out
     if args.generate_held_1_domain_out_data:
         # Load union upsampled train data
-        union_up_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_up_train.jsonl")
+        union_up_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_up_train.jsonl"
+        )
         union_up_train_data = load_jsonl_as_list(union_up_train_file_path)
         held_in_data = []
         held_out_domain = "news"
@@ -547,14 +646,24 @@ def main():
             held_in_data.append(entry)
         held_in_data_dir = os.path.join(train_data_dir, "EXP", "Held1DomainOut")
         os.makedirs(held_in_data_dir, exist_ok=True)
-        held_in_data_file_path = os.path.join(held_in_data_dir, "mbeir_held_1_domain_out_train.jsonl")
-        union_train_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_train_cand_pool.jsonl")
-        save_and_print_mbeir_format_dataset_stats(held_in_data, held_in_data_file_path, union_train_cand_pool_file_path)
+        held_in_data_file_path = os.path.join(
+            held_in_data_dir, "mbeir_held_1_domain_out_train.jsonl"
+        )
+        union_train_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_train_cand_pool.jsonl"
+        )
+        save_and_print_mbeir_format_dataset_stats(
+            held_in_data, held_in_data_file_path, union_train_cand_pool_file_path
+        )
 
     # Hard negative mining
     if args.unify_and_upsample_train_data_with_hard_negs:
-        hard_negs_dir = os.path.join(args.mbeir_data_dir, "train", args.hard_negs_dir_name)
-        print(f"Unify and upsample train data with hard negatives from {hard_negs_dir}...")
+        hard_negs_dir = os.path.join(
+            args.mbeir_data_dir, "train", args.hard_negs_dir_name
+        )
+        print(
+            f"Unify and upsample train data with hard negatives from {hard_negs_dir}..."
+        )
         union_data = unify_upsample_mbeir_data(
             data_dir=hard_negs_dir,
             data_split="hard_negs_train",
@@ -562,11 +671,17 @@ def main():
             datasets_info=datasets_info,
             shuffle=False,
         )
-        union_up_hard_negs_train_file_path = os.path.join(union_train_data_dir, "mbeir_union_up_hard_negs_train.jsonl")
+        union_up_hard_negs_train_file_path = os.path.join(
+            union_train_data_dir, "mbeir_union_up_hard_negs_train.jsonl"
+        )
         # We are using union_all candidate pool since MSCOCO has separate candidate pools for train and val and test.
-        union_all_cand_pool_file_path = os.path.join(union_pool_dir, "mbeir_union_all_cand_pool.jsonl")
+        union_all_cand_pool_file_path = os.path.join(
+            union_pool_dir, "mbeir_union_all_cand_pool.jsonl"
+        )
         save_and_print_mbeir_format_dataset_stats(
-            union_data, union_up_hard_negs_train_file_path, union_all_cand_pool_file_path
+            union_data,
+            union_up_hard_negs_train_file_path,
+            union_all_cand_pool_file_path,
         )
 
 

@@ -18,6 +18,7 @@ retrieval_config:
 
     # For using retrieved candidates in downstream applications like RAG.
     raw_retrieval: False # Store raw queries and their retrieved candidates
+    retrieve_image_text_pairs: False # During raw retrieval always retrieve imge-text pairs.
     query_dir_name: # Raw queries will be loaded from mbeir_data_dir/query_dir_name
     candidate_dir_name: # Raw retrieved candidates will be loaded from mbeir_data_dir/cand_pool/candidate_dir_name
 

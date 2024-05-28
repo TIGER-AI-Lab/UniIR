@@ -13,8 +13,12 @@ def train_one_epoch(
 
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
-    metric_logger.add_meter("loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
-    metric_logger.add_meter("inbatch_accuracy", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
+    metric_logger.add_meter(
+        "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+    )
+    metric_logger.add_meter(
+        "inbatch_accuracy", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+    )
     header = "Train Epoch: [{}]".format(epoch)
     print_freq = config.trainer_config.print_freq
 
@@ -57,8 +61,12 @@ def train_one_epoch(
             scheduler.step()
             accumulation_counter = 0
 
-        metric_logger.update(loss=loss.item() * accumulation_steps)  # We scale back the loss for logging.
-        metric_logger.update(lr=optimizer.param_groups[0]["lr"])  # TODO: might need to loop through all param groups
+        metric_logger.update(
+            loss=loss.item() * accumulation_steps
+        )  # We scale back the loss for logging.
+        metric_logger.update(
+            lr=optimizer.param_groups[0]["lr"]
+        )  # TODO: might need to loop through all param groups
         metric_logger.update(inbatch_accuracy=inbatch_accuracy.item())
 
     # gather the stats from all processes
@@ -71,8 +79,12 @@ def train_one_epoch(
 def eval_engine(model_without_ddp, model, data_loader, gpu_id, config):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter("loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
-    metric_logger.add_meter("inbatch_accuracy", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
+    metric_logger.add_meter(
+        "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+    )
+    metric_logger.add_meter(
+        "inbatch_accuracy", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+    )
     header = "Test:"
     print_freq = config.evaluator.print_freq
 
@@ -82,7 +94,9 @@ def eval_engine(model_without_ddp, model, data_loader, gpu_id, config):
     # Clear model queue states
     model_without_ddp.query_queue.copy_(torch.randn_like(model_without_ddp.query_queue))
     model_without_ddp.cand_queue.copy_(torch.randn_like(model_without_ddp.cand_queue))
-    model_without_ddp.idx_queue.copy_(torch.full_like(model_without_ddp.idx_queue, -100))
+    model_without_ddp.idx_queue.copy_(
+        torch.full_like(model_without_ddp.idx_queue, -100)
+    )
     model_without_ddp.new_ptr_queue.zero_()
     print("Cleared model queue states.")
 

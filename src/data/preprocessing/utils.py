@@ -109,10 +109,14 @@ def get_mbeir_query_modality_cand_modality_from_task_id(task_id):
 
 def format_string(s):
     """Strip the string, remove carriage returns, and capitalize the first character."""
-    s = (s or "").replace("\r", "").strip().strip('"')  # TODO: removing double quotes may not be necessary
+    s = (
+        (s or "").replace("\r", "").strip().strip('"')
+    )  # TODO: removing double quotes may not be necessary
     if s:  # If the string is not empty
         s = s[0].upper() + s[1:]  # Capitalize the first character
-        s = s + "." if s[-1] not in [".", "?", "!"] else s  # Add a period at the end of the string
+        s = (
+            s + "." if s[-1] not in [".", "?", "!"] else s
+        )  # Add a period at the end of the string
     return s
 
 
@@ -123,7 +127,9 @@ def resize_and_convert_image_to_jpg(image_path):
             if img.mode == "P":
                 img = img.convert("RGBA")
 
-            img = img.convert("RGB")  # Convert the image to RGB format (necessary for GIF and other non-RGB formats)
+            img = img.convert(
+                "RGB"
+            )  # Convert the image to RGB format (necessary for GIF and other non-RGB formats)
 
             # The shortest side is resized to IMAGE_SHORT_SIDE pixels. So we can apply data augmentation later
             img_resized = resize_transform(img)
@@ -138,7 +144,9 @@ def resize_and_convert_image_to_jpg(image_path):
             return True
 
     except Exception as e:
-        print(f"Error processing {image_path}. Invalid or corrupted image.  Message: {e}")
+        print(
+            f"Error processing {image_path}. Invalid or corrupted image.  Message: {e}"
+        )
         os.remove(image_path)
         print(f"Removed {image_path}")
         return False
@@ -265,7 +273,9 @@ def count_entries_in_file(filename):
         with open(filename, "r") as file:
             data = json.load(file)
     else:
-        raise ValueError("Unsupported file format. Only .json and .jsonl are supported.")
+        raise ValueError(
+            "Unsupported file format. Only .json and .jsonl are supported."
+        )
     return len(data), data
 
 
@@ -338,7 +348,9 @@ def generate_mbeir_format_doc_key(entry):
     return doc_key
 
 
-def load_mbeir_format_pool_file_as_dict(pool_file_path, doc_key_to_content=False, key_type="mbeir_converted_key"):
+def load_mbeir_format_pool_file_as_dict(
+    pool_file_path, doc_key_to_content=False, key_type="mbeir_converted_key"
+):
     """
     Load the candidate pool file into a dictionary.
     {doc_key : did} or {doc_key : entry}
@@ -366,7 +378,9 @@ def load_mbeir_format_pool_file_as_dict(pool_file_path, doc_key_to_content=False
     return pool_dict
 
 
-def load_mbeir_format_query_file_as_dict(query_file_path, doc_key_to_content=False, key_type="mbeir_converted_key"):
+def load_mbeir_format_query_file_as_dict(
+    query_file_path, doc_key_to_content=False, key_type="mbeir_converted_key"
+):
     """
     Load the query data file into a dictionary.
     {qid : did} or {qid : entry}
@@ -408,11 +422,21 @@ def get_modality_stats(data, cand_pool_dict):
 
     modality_counts = {
         "pos": {
-            comb: {"count": 0, "queries": [], "unique_queries": set(), "unique_dids": set()}
+            comb: {
+                "count": 0,
+                "queries": [],
+                "unique_queries": set(),
+                "unique_dids": set(),
+            }
             for comb in modality_combinations
         },
         "neg": {
-            comb: {"count": 0, "queries": [], "unique_queries": set(), "unique_dids": set()}
+            comb: {
+                "count": 0,
+                "queries": [],
+                "unique_queries": set(),
+                "unique_dids": set(),
+            }
             for comb in modality_combinations
         },
     }
@@ -424,7 +448,9 @@ def get_modality_stats(data, cand_pool_dict):
     total_entries = 0  # For computing the average
     total_pos_cand_count = 0
     total_neg_cand_count = 0
-    total_query_question_type_count = {qtype: 0 for qtype in ["String", "Numerical", "Time"]}  # For INFOSEEK dataset
+    total_query_question_type_count = {
+        qtype: 0 for qtype in ["String", "Numerical", "Time"]
+    }  # For INFOSEEK dataset
 
     for entry in data:
         qid = entry["qid"]
@@ -443,7 +469,9 @@ def get_modality_stats(data, cand_pool_dict):
         query_src_content = entry.get("query_src_content", None)
         if query_src_content:
             query_src_content = json.loads(query_src_content)
-        query_question_type = query_src_content.get("question_type", None) if query_src_content else None
+        query_question_type = (
+            query_src_content.get("question_type", None) if query_src_content else None
+        )
         if query_question_type:
             total_query_question_type_count[query_question_type] += 1
 
@@ -462,7 +490,7 @@ def get_modality_stats(data, cand_pool_dict):
                         golden_task_modality = combined_modality
                     else:
                         assert (
-                                golden_task_modality == combined_modality
+                            golden_task_modality == combined_modality
                         ), "Golden task modality does not match with the combined modality"
 
                 if cand_type == "pos_cand_list":
@@ -474,17 +502,27 @@ def get_modality_stats(data, cand_pool_dict):
 
                 # Check if combined_modality exists in our dictionary
                 if combined_modality in modality_counts[translated_cand_type]:
-                    modality_counts[translated_cand_type][combined_modality]["count"] += 1
-                    modality_counts[translated_cand_type][combined_modality]["unique_queries"].add(qid)
-                    modality_counts[translated_cand_type][combined_modality]["unique_dids"].add(cand["did"])
+                    modality_counts[translated_cand_type][combined_modality][
+                        "count"
+                    ] += 1
+                    modality_counts[translated_cand_type][combined_modality][
+                        "unique_queries"
+                    ].add(qid)
+                    modality_counts[translated_cand_type][combined_modality][
+                        "unique_dids"
+                    ].add(cand["did"])
 
                     if idx == 0:
-                        modality_counts[translated_cand_type][combined_modality]["queries"].append(qid)
+                        modality_counts[translated_cand_type][combined_modality][
+                            "queries"
+                        ].append(qid)
 
     stats = {
         "pos": {
             "examples": {
-                modality: data["count"] for modality, data in modality_counts["pos"].items() if data["count"] > 0
+                modality: data["count"]
+                for modality, data in modality_counts["pos"].items()
+                if data["count"] > 0
             },
             "queries": {
                 modality: len(data["queries"])
@@ -506,7 +544,9 @@ def get_modality_stats(data, cand_pool_dict):
         },
         "neg": {
             "examples": {
-                modality: data["count"] for modality, data in modality_counts["neg"].items() if data["count"] > 0
+                modality: data["count"]
+                for modality, data in modality_counts["neg"].items()
+                if data["count"] > 0
             },
             "queries": {
                 modality: len(data["queries"])
@@ -524,13 +564,20 @@ def get_modality_stats(data, cand_pool_dict):
                 if len(data["unique_dids"]) > 0
             },
             "avg_neg_cand_count": total_neg_cand_count / total_entries,
-            "avg_txt_words": total_neg_txt_words / total_neg_cand_count if total_neg_cand_count > 0 else 0,
+            "avg_txt_words": (
+                total_neg_txt_words / total_neg_cand_count
+                if total_neg_cand_count > 0
+                else 0
+            ),
         },
         "avg_query_txt_words": total_query_txt_words / total_entries,
     }
 
     # For INFOSEEK dataset
-    if any(total_query_question_type_count[key] > 0 for key in ["String", "Numerical", "Time"]):
+    if any(
+        total_query_question_type_count[key] > 0
+        for key in ["String", "Numerical", "Time"]
+    ):
         stats["total_query_question_type_count"] = total_query_question_type_count
     return stats
 
@@ -549,20 +596,28 @@ def print_mbeir_format_dataset_stats(data, cand_pool_dict):
                 for modality, count in values.items():
                     print(f"\t{modality}: {count}")
             else:
-                print(f"\t{values:.1f}")  # Print the value as a float with 2 decimal places
+                print(
+                    f"\t{values:.1f}"
+                )  # Print the value as a float with 2 decimal places
 
 
 def print_mbeir_format_cand_pool_stats(candidate_pool_path, print_duplicate=True):
-    total_entries, modality_counts, _data = count_mbeir_format_pool_entries_based_on_modality(candidate_pool_path)
+    total_entries, modality_counts, _data = (
+        count_mbeir_format_pool_entries_based_on_modality(candidate_pool_path)
+    )
     print(f"Total number of entries in {candidate_pool_path}: {total_entries}")
     print(f"Modality counts: {modality_counts}")
-    duplicates = check_duplicates_in_mbeir_format_cand_pool(_data, print_duplicate=print_duplicate)
+    duplicates = check_duplicates_in_mbeir_format_cand_pool(
+        _data, print_duplicate=print_duplicate
+    )
     print(f"Number of duplicates: {len(duplicates)}")
     if duplicates:
         print(f"Sample duplicates: {duplicates[:5]}")
 
 
-def save_and_print_mbeir_format_dataset_stats(data, data_file_path, cand_pool_file_path):
+def save_and_print_mbeir_format_dataset_stats(
+    data, data_file_path, cand_pool_file_path
+):
     # Save to the new JSONL file
     save_list_as_jsonl(data, data_file_path)
 
