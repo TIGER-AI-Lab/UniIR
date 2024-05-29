@@ -80,12 +80,8 @@ def fashion200k_to_mbeir_entry(
     # Process image path and description
     img_path = fashion200k_entry["img_path"]
     path_parts = img_path.split("/")
-    base_filename, _ = os.path.splitext(
-        "/".join(path_parts[1:])
-    )  # Removing 'women/' and '.jpeg'
-    img_path = os.path.join(
-        "mbeir_images", "fashion200k_images", base_filename + ".jpg"
-    )
+    base_filename, _ = os.path.splitext("/".join(path_parts[1:]))  # Removing 'women/' and '.jpeg'
+    img_path = os.path.join("mbeir_images", "fashion200k_images", base_filename + ".jpg")
 
     txt = format_string(fashion200k_entry["txt"])
 
@@ -110,9 +106,7 @@ def fashion200k_to_mbeir_entry(
     if pos_candidate_did:
         mbeir_entry_img2txt["pos_cand_list"].append(pos_candidate_did)
     else:
-        print(
-            f"Warning: No positive candidate for query_img_path {mbeir_entry_img2txt['query_img_path']}"
-        )
+        print(f"Warning: No positive candidate for query_img_path {mbeir_entry_img2txt['query_img_path']}")
         return None
 
     # Generate Text2Image MBEIR entry
@@ -132,9 +126,7 @@ def fashion200k_to_mbeir_entry(
     if pos_candidate_did:
         mbeir_entry_txt2img["pos_cand_list"].append(pos_candidate_did)
     else:
-        print(
-            f"Warning: No positive candidate for query_txt {mbeir_entry_txt2img['query_txt']}"
-        )
+        print(f"Warning: No positive candidate for query_txt {mbeir_entry_txt2img['query_txt']}")
         return None
 
     mbeir_entries = [mbeir_entry_img2txt, mbeir_entry_txt2img]
@@ -221,18 +213,12 @@ def generate_fashion200k_candidate_pool(
                     img_path, _, description = line.strip().split("\t")
                     # Note: we always store relative paths to MBEIR data directory
                     path_parts = img_path.split("/")
-                    base_filename, _ = os.path.splitext(
-                        "/".join(path_parts[1:])
-                    )  # Removing 'women/' and '.jpeg'
-                    img_path = os.path.join(
-                        "mbeir_images", "fashion200k_images", base_filename + ".jpg"
-                    )
+                    base_filename, _ = os.path.splitext("/".join(path_parts[1:]))  # Removing 'women/' and '.jpeg'
+                    img_path = os.path.join("mbeir_images", "fashion200k_images", base_filename + ".jpg")
                     description = format_string(description)
 
                     # Track if we've seen both the caption and image path
-                    seen_both = (
-                        description in seen_txts and img_path in seen_image_paths
-                    )
+                    seen_both = description in seen_txts and img_path in seen_image_paths
 
                     if not seen_both:
                         # If description hasn't been seen, create text entry
@@ -249,17 +235,13 @@ def generate_fashion200k_candidate_pool(
                                     "src_content": None,
                                 }
                                 document_id += 1  # increment for next entry
-                                outfile.write(
-                                    json.dumps(candidate_pool_entry_txt) + "\n"
-                                )
+                                outfile.write(json.dumps(candidate_pool_entry_txt) + "\n")
                                 seen_txts.add(description)
 
                         # If image path hasn't been seen, create image entry
                         if img_path not in seen_image_paths:
                             # If image is not valid, skip it
-                            if not is_valid_image(
-                                os.path.join(mbeir_data_dir, img_path)
-                            ):
+                            if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
                                 print(f"Warning: Invalid image: {img_path}")
                             else:
                                 candidate_pool_entry_img = {
@@ -270,16 +252,12 @@ def generate_fashion200k_candidate_pool(
                                     "src_content": None,
                                 }
                                 document_id += 1  # increment for next entry
-                                outfile.write(
-                                    json.dumps(candidate_pool_entry_img) + "\n"
-                                )
+                                outfile.write(json.dumps(candidate_pool_entry_img) + "\n")
                                 seen_image_paths.add(img_path)
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format fashion200k images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format fashion200k images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -348,19 +326,13 @@ def main():
     # Note: we keep the original project structure as in the fashion200k dataset
     # So all the paths are hardcoded.
     fashion200k_dir = os.path.join(args.mbeir_data_dir, args.fashion200k_dir)
-    fashion200k_images_dir = os.path.join(
-        args.mbeir_data_dir, args.fashion200k_images_dir
-    )
+    fashion200k_images_dir = os.path.join(args.mbeir_data_dir, args.fashion200k_images_dir)
     fashion200k_labels_dir = os.path.join(fashion200k_dir, "labels")
-    fashion200k_candidate_pool_path = os.path.join(
-        fashion200k_dir, "mbeir_fashion200k_cand_pool.jsonl"
-    )
+    fashion200k_candidate_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_cand_pool.jsonl")
 
     if args.enable_image_processing:
         print(f"Processing images in {fashion200k_images_dir}...")
-        parallel_process_image_directory(
-            fashion200k_images_dir, num_processes=cpu_count()
-        )
+        parallel_process_image_directory(fashion200k_images_dir, num_processes=cpu_count())
 
     # Generate candidate pool
     if args.enable_candidate_pool:
@@ -395,25 +367,19 @@ def main():
 
         for type in types:
             for split in splits:
-                file_path = os.path.join(
-                    fashion200k_dir, "labels", f"{type}_{split}_detect_all.txt"
-                )
+                file_path = os.path.join(fashion200k_dir, "labels", f"{type}_{split}_detect_all.txt")
                 data = load_fashion200k_data_from_txt(file_path)
                 split_data[split].extend(data)
 
         for split, fashion200k_data_split in split_data.items():
-            mbeir_format_fashion200k_data_path = os.path.join(
-                fashion200k_dir, f"mbeir_fashion200k_{split}.jsonl"
-            )
+            mbeir_format_fashion200k_data_path = os.path.join(fashion200k_dir, f"mbeir_fashion200k_{split}.jsonl")
             mbeir_entries = fashion200k_to_mbeir(
                 fashion200k_data_split,
                 fashion200k_candidate_pool_path,
                 args.mbeir_data_dir,
             )
 
-            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(
-                mbeir_entries, print_duplicate=False
-            )
+            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(mbeir_entries, print_duplicate=False)
 
             # Generate query ID
             for i, entry in enumerate(mbeir_entries):
@@ -422,15 +388,9 @@ def main():
             save_list_as_jsonl(mbeir_entries, mbeir_format_fashion200k_data_path)
 
             # Print statistics
-            total_entries, _data = count_entries_in_file(
-                mbeir_format_fashion200k_data_path
-            )
-            print(
-                f"MBEIR format fashion200k {split} data saved to {mbeir_format_fashion200k_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_fashion200k_data_path}: {total_entries}"
-            )
+            total_entries, _data = count_entries_in_file(mbeir_format_fashion200k_data_path)
+            print(f"MBEIR format fashion200k {split} data saved to {mbeir_format_fashion200k_data_path}")
+            print(f"Total number of entries in {mbeir_format_fashion200k_data_path}: {total_entries}")
             fashion200k_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                 fashion200k_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -440,12 +400,8 @@ def main():
     if args.trim_train_data:
         trim_num = 15000
         print(f" Trim the training data queries to {2*trim_num}...")
-        fashion200k_train_data_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_train.jsonl"
-        )
-        fashion200k_train_data_trimmed_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_train_trimmed.jsonl"
-        )
+        fashion200k_train_data_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_train.jsonl")
+        fashion200k_train_data_trimmed_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_train_trimmed.jsonl")
         fashion200k_train_data = load_jsonl_as_list(fashion200k_train_data_path)
         txt2img_entries = []
         img2txt_entries = []
@@ -457,27 +413,17 @@ def main():
         random.seed(2023)
         random.shuffle(txt2img_entries)
         random.shuffle(img2txt_entries)
-        fashion200k_train_data_trimmed = (
-            txt2img_entries[:trim_num] + img2txt_entries[:trim_num]
-        )
+        fashion200k_train_data_trimmed = txt2img_entries[:trim_num] + img2txt_entries[:trim_num]
         random.shuffle(fashion200k_train_data_trimmed)
 
         # Reassign query IDs
         for i, entry in enumerate(fashion200k_train_data_trimmed):
             entry.update({"qid": f"{FASHION200K_DATASET_ID}:{i + 1}"})
-        save_list_as_jsonl(
-            fashion200k_train_data_trimmed, fashion200k_train_data_trimmed_path
-        )
+        save_list_as_jsonl(fashion200k_train_data_trimmed, fashion200k_train_data_trimmed_path)
 
-        total_entries, _data = count_entries_in_file(
-            fashion200k_train_data_trimmed_path
-        )
-        print(
-            f"Trimmed fashion200k train data saved to {fashion200k_train_data_trimmed_path}"
-        )
-        print(
-            f"Total number of entries in {fashion200k_train_data_trimmed_path}: {total_entries}"
-        )
+        total_entries, _data = count_entries_in_file(fashion200k_train_data_trimmed_path)
+        print(f"Trimmed fashion200k train data saved to {fashion200k_train_data_trimmed_path}")
+        print(f"Total number of entries in {fashion200k_train_data_trimmed_path}: {total_entries}")
         fashion200k_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
             fashion200k_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
@@ -492,9 +438,7 @@ def main():
             f"Renamed {fashion200k_train_data_path} to {os.path.join(fashion200k_dir, 'mbeir_fashion200k_train_untrimmed.jsonl')}"
         )
         os.rename(fashion200k_train_data_trimmed_path, fashion200k_train_data_path)
-        print(
-            f"Renamed {fashion200k_train_data_trimmed_path} to {fashion200k_train_data_path}"
-        )
+        print(f"Renamed {fashion200k_train_data_trimmed_path} to {fashion200k_train_data_path}")
 
     # Split the cand pool according to task
     if args.split_candidate_pool_by_task:
@@ -517,18 +461,10 @@ def main():
         print(f"Number of candidates for task 3: {len(fashion200k_task3_cand_pool)}")
 
         # Save the candidate pool
-        fashion200k_task0_cand_pool_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_task0_cand_pool.jsonl"
-        )
-        fashion200k_task3_cand_pool_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_task3_cand_pool.jsonl"
-        )
-        save_list_as_jsonl(
-            fashion200k_task0_cand_pool, fashion200k_task0_cand_pool_path
-        )
-        save_list_as_jsonl(
-            fashion200k_task3_cand_pool, fashion200k_task3_cand_pool_path
-        )
+        fashion200k_task0_cand_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_task0_cand_pool.jsonl")
+        fashion200k_task3_cand_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_task3_cand_pool.jsonl")
+        save_list_as_jsonl(fashion200k_task0_cand_pool, fashion200k_task0_cand_pool_path)
+        save_list_as_jsonl(fashion200k_task3_cand_pool, fashion200k_task3_cand_pool_path)
         print(f"Saved task 0 candidate pool to {fashion200k_task0_cand_pool_path}")
         print(f"Saved task 3 candidate pool to {fashion200k_task3_cand_pool_path}")
         print_mbeir_format_cand_pool_stats(fashion200k_task0_cand_pool_path)
@@ -538,68 +474,42 @@ def main():
     if args.generate_validation_data:
         # We equally split the test data into validation and test data
         print("Generating validation data...")
-        fashion200k_test_data_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_test.jsonl"
-        )
-        fashion200k_val_data_path_after_split = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_val_after_split.jsonl"
-        )
+        fashion200k_test_data_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_test.jsonl")
+        fashion200k_val_data_path_after_split = os.path.join(fashion200k_dir, "mbeir_fashion200k_val_after_split.jsonl")
         fashion200k_test_data_path_after_split = os.path.join(
             fashion200k_dir, "mbeir_fashion200k_test_after_split.jsonl"
         )
 
         # Load the test data
-        fashion200k_test_data_before_split = load_jsonl_as_list(
-            fashion200k_test_data_path
-        )
+        fashion200k_test_data_before_split = load_jsonl_as_list(fashion200k_test_data_path)
         # trim the size of the test data by half
         fashion200k_test_data_before_split = fashion200k_test_data_before_split[
             : len(fashion200k_test_data_before_split) // 2
         ]
         random.seed(2023)
         random.shuffle(fashion200k_test_data_before_split)
-        fashion200k_val_data = fashion200k_test_data_before_split[
-            : len(fashion200k_test_data_before_split) // 3
-        ]
-        fashion200k_test_data = fashion200k_test_data_before_split[
-            len(fashion200k_test_data_before_split) // 3 * 2 :
-        ]
+        fashion200k_val_data = fashion200k_test_data_before_split[: len(fashion200k_test_data_before_split) // 3]
+        fashion200k_test_data = fashion200k_test_data_before_split[len(fashion200k_test_data_before_split) // 3 * 2 :]
         save_list_as_jsonl(fashion200k_val_data, fashion200k_val_data_path_after_split)
-        save_list_as_jsonl(
-            fashion200k_test_data, fashion200k_test_data_path_after_split
-        )
+        save_list_as_jsonl(fashion200k_test_data, fashion200k_test_data_path_after_split)
         fashion200k_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
             fashion200k_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
         print(f"Saved validation data to {fashion200k_val_data_path_after_split}")
-        print_mbeir_format_dataset_stats(
-            fashion200k_val_data, fashion200k_cand_pool_dict
-        )
+        print_mbeir_format_dataset_stats(fashion200k_val_data, fashion200k_cand_pool_dict)
         print(f"Saved test data to {fashion200k_test_data_path_after_split}")
-        print_mbeir_format_dataset_stats(
-            fashion200k_test_data, fashion200k_cand_pool_dict
-        )
+        print_mbeir_format_dataset_stats(fashion200k_test_data, fashion200k_cand_pool_dict)
 
     # Split the query data according to task
     if args.split_query_data_by_task:
         print("Split the query data according to task")
-        fashion200k_task0_cand_pool_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_task0_cand_pool.jsonl"
-        )
-        fashion200k_task3_cand_pool_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_task3_cand_pool.jsonl"
-        )
+        fashion200k_task0_cand_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_task0_cand_pool.jsonl")
+        fashion200k_task3_cand_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_task3_cand_pool.jsonl")
 
         for split in ["val", "test"]:
-            data_path = os.path.join(
-                fashion200k_dir, f"mbeir_fashion200k_{split}_after_split.jsonl"
-            )
-            task0_data_path = os.path.join(
-                fashion200k_dir, f"mbeir_fashion200k_task0_{split}.jsonl"
-            )
-            task3_data_path = os.path.join(
-                fashion200k_dir, f"mbeir_fashion200k_task3_{split}.jsonl"
-            )
+            data_path = os.path.join(fashion200k_dir, f"mbeir_fashion200k_{split}_after_split.jsonl")
+            task0_data_path = os.path.join(fashion200k_dir, f"mbeir_fashion200k_task0_{split}.jsonl")
+            task3_data_path = os.path.join(fashion200k_dir, f"mbeir_fashion200k_task3_{split}.jsonl")
 
             # Load the data
             fashion200k_data = load_jsonl_as_list(data_path)
@@ -634,12 +544,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        fashion200k_train_candidate_pool_path = os.path.join(
-            fashion200k_dir, "mbeir_fashion200k_train_cand_pool.jsonl"
-        )
-        mbeir_format_fashion200k_train_data_path = os.path.join(
-            fashion200k_dir, f"mbeir_fashion200k_train.jsonl"
-        )
+        fashion200k_train_candidate_pool_path = os.path.join(fashion200k_dir, "mbeir_fashion200k_train_cand_pool.jsonl")
+        mbeir_format_fashion200k_train_data_path = os.path.join(fashion200k_dir, f"mbeir_fashion200k_train.jsonl")
         assert os.path.exists(
             mbeir_format_fashion200k_train_data_path
         ), f"File {mbeir_format_fashion200k_train_data_path} does not exist"
@@ -649,9 +555,7 @@ def main():
         fashion200k_cand_pool = load_mbeir_format_pool_file_as_dict(
             fashion200k_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_fashion200k_train_data = load_jsonl_as_list(
-            mbeir_format_fashion200k_train_data_path
-        )
+        mbeir_format_fashion200k_train_data = load_jsonl_as_list(mbeir_format_fashion200k_train_data_path)
         for entry in mbeir_format_fashion200k_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -665,18 +569,10 @@ def main():
                         )
 
         # Save the training candidate pool
-        fashion200k_train_candidate_pool_list = list(
-            fashion200k_train_candidate_pool.values()
-        )
-        fashion200k_train_candidate_pool_list.sort(
-            key=lambda x: int(x["did"].split(":")[1])
-        )
-        save_list_as_jsonl(
-            fashion200k_train_candidate_pool_list, fashion200k_train_candidate_pool_path
-        )
-        print(
-            f"Saved training candidate pool to {fashion200k_train_candidate_pool_path}"
-        )
+        fashion200k_train_candidate_pool_list = list(fashion200k_train_candidate_pool.values())
+        fashion200k_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
+        save_list_as_jsonl(fashion200k_train_candidate_pool_list, fashion200k_train_candidate_pool_path)
+        print(f"Saved training candidate pool to {fashion200k_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(fashion200k_train_candidate_pool_path)
 
 

@@ -85,11 +85,7 @@ class Attention(nn.Module):
 
     def forward(self, x, register_hook=False):
         B, N, C = x.shape
-        qkv = (
-            self.qkv(x)
-            .reshape(B, N, 3, self.num_heads, C // self.num_heads)
-            .permute(2, 0, 3, 1, 4)
-        )
+        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = (
             qkv[0],
             qkv[1],
@@ -202,9 +198,7 @@ class VisionTransformer(nn.Module):
             norm_layer: (nn.Module): normalization layer
         """
         super().__init__()
-        self.num_features = self.embed_dim = (
-            embed_dim  # num_features for consistency with other models
-        )
+        self.num_features = self.embed_dim = embed_dim  # num_features for consistency with other models
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
 
         self.patch_embed = PatchEmbed(
@@ -220,9 +214,7 @@ class VisionTransformer(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_rate)
 
-        dpr = [
-            x.item() for x in torch.linspace(0, drop_path_rate, depth)
-        ]  # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         self.blocks = nn.ModuleList(
             [
                 Block(
@@ -235,9 +227,7 @@ class VisionTransformer(nn.Module):
                     attn_drop=attn_drop_rate,
                     drop_path=dpr[i],
                     norm_layer=norm_layer,
-                    use_grad_checkpointing=(
-                        use_grad_checkpointing and i >= depth - ckpt_layer
-                    ),
+                    use_grad_checkpointing=(use_grad_checkpointing and i >= depth - ckpt_layer),
                 )
                 for i in range(depth)
             ]
@@ -265,9 +255,7 @@ class VisionTransformer(nn.Module):
         B = x.shape[0]
         x = self.patch_embed(x)
 
-        cls_tokens = self.cls_token.expand(
-            B, -1, -1
-        )  # stole cls_tokens impl from Phil Wang, thanks
+        cls_tokens = self.cls_token.expand(B, -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         x = torch.cat((cls_tokens, x), dim=1)
 
         x = x + self.pos_embed[:, : x.size(1), :]
@@ -310,11 +298,7 @@ def _load_weights(model: VisionTransformer, checkpoint_path: str, prefix: str = 
         backbone = model.patch_embed.backbone
         stem_only = not hasattr(backbone, "stem")
         stem = backbone if stem_only else backbone.stem
-        stem.conv.weight.copy_(
-            adapt_input_conv(
-                stem.conv.weight.shape[1], _n2p(w[f"{prefix}conv_root/kernel"])
-            )
-        )
+        stem.conv.weight.copy_(adapt_input_conv(stem.conv.weight.shape[1], _n2p(w[f"{prefix}conv_root/kernel"])))
         stem.norm.weight.copy_(_n2p(w[f"{prefix}gn_root/scale"]))
         stem.norm.bias.copy_(_n2p(w[f"{prefix}gn_root/bias"]))
         if not stem_only:
@@ -322,28 +306,16 @@ def _load_weights(model: VisionTransformer, checkpoint_path: str, prefix: str = 
                 for j, block in enumerate(stage.blocks):
                     bp = f"{prefix}block{i + 1}/unit{j + 1}/"
                     for r in range(3):
-                        getattr(block, f"conv{r + 1}").weight.copy_(
-                            _n2p(w[f"{bp}conv{r + 1}/kernel"])
-                        )
-                        getattr(block, f"norm{r + 1}").weight.copy_(
-                            _n2p(w[f"{bp}gn{r + 1}/scale"])
-                        )
-                        getattr(block, f"norm{r + 1}").bias.copy_(
-                            _n2p(w[f"{bp}gn{r + 1}/bias"])
-                        )
+                        getattr(block, f"conv{r + 1}").weight.copy_(_n2p(w[f"{bp}conv{r + 1}/kernel"]))
+                        getattr(block, f"norm{r + 1}").weight.copy_(_n2p(w[f"{bp}gn{r + 1}/scale"]))
+                        getattr(block, f"norm{r + 1}").bias.copy_(_n2p(w[f"{bp}gn{r + 1}/bias"]))
                     if block.downsample is not None:
-                        block.downsample.conv.weight.copy_(
-                            _n2p(w[f"{bp}conv_proj/kernel"])
-                        )
-                        block.downsample.norm.weight.copy_(
-                            _n2p(w[f"{bp}gn_proj/scale"])
-                        )
+                        block.downsample.conv.weight.copy_(_n2p(w[f"{bp}conv_proj/kernel"]))
+                        block.downsample.norm.weight.copy_(_n2p(w[f"{bp}gn_proj/scale"]))
                         block.downsample.norm.bias.copy_(_n2p(w[f"{bp}gn_proj/bias"]))
         embed_conv_w = _n2p(w[f"{prefix}embedding/kernel"])
     else:
-        embed_conv_w = adapt_input_conv(
-            model.patch_embed.proj.weight.shape[1], _n2p(w[f"{prefix}embedding/kernel"])
-        )
+        embed_conv_w = adapt_input_conv(model.patch_embed.proj.weight.shape[1], _n2p(w[f"{prefix}embedding/kernel"]))
     model.patch_embed.proj.weight.copy_(embed_conv_w)
     model.patch_embed.proj.bias.copy_(_n2p(w[f"{prefix}embedding/bias"]))
     model.cls_token.copy_(_n2p(w[f"{prefix}cls"], t=False))
@@ -370,30 +342,16 @@ def _load_weights(model: VisionTransformer, checkpoint_path: str, prefix: str = 
         block.norm1.weight.copy_(_n2p(w[f"{block_prefix}LayerNorm_0/scale"]))
         block.norm1.bias.copy_(_n2p(w[f"{block_prefix}LayerNorm_0/bias"]))
         block.attn.qkv.weight.copy_(
-            torch.cat(
-                [
-                    _n2p(w[f"{mha_prefix}{n}/kernel"], t=False).flatten(1).T
-                    for n in ("query", "key", "value")
-                ]
-            )
+            torch.cat([_n2p(w[f"{mha_prefix}{n}/kernel"], t=False).flatten(1).T for n in ("query", "key", "value")])
         )
         block.attn.qkv.bias.copy_(
-            torch.cat(
-                [
-                    _n2p(w[f"{mha_prefix}{n}/bias"], t=False).reshape(-1)
-                    for n in ("query", "key", "value")
-                ]
-            )
+            torch.cat([_n2p(w[f"{mha_prefix}{n}/bias"], t=False).reshape(-1) for n in ("query", "key", "value")])
         )
         block.attn.proj.weight.copy_(_n2p(w[f"{mha_prefix}out/kernel"]).flatten(1))
         block.attn.proj.bias.copy_(_n2p(w[f"{mha_prefix}out/bias"]))
         for r in range(2):
-            getattr(block.mlp, f"fc{r + 1}").weight.copy_(
-                _n2p(w[f"{block_prefix}MlpBlock_3/Dense_{r}/kernel"])
-            )
-            getattr(block.mlp, f"fc{r + 1}").bias.copy_(
-                _n2p(w[f"{block_prefix}MlpBlock_3/Dense_{r}/bias"])
-            )
+            getattr(block.mlp, f"fc{r + 1}").weight.copy_(_n2p(w[f"{block_prefix}MlpBlock_3/Dense_{r}/kernel"]))
+            getattr(block.mlp, f"fc{r + 1}").bias.copy_(_n2p(w[f"{block_prefix}MlpBlock_3/Dense_{r}/bias"]))
         block.norm2.weight.copy_(_n2p(w[f"{block_prefix}LayerNorm_2/scale"]))
         block.norm2.bias.copy_(_n2p(w[f"{block_prefix}LayerNorm_2/bias"]))
 
@@ -413,9 +371,7 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
         extra_tokens = pos_embed_checkpoint[:, :num_extra_tokens]
         # only the position tokens are interpolated
         pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
-        pos_tokens = pos_tokens.reshape(
-            -1, orig_size, orig_size, embedding_size
-        ).permute(0, 3, 1, 2)
+        pos_tokens = pos_tokens.reshape(-1, orig_size, orig_size, embedding_size).permute(0, 3, 1, 2)
         pos_tokens = torch.nn.functional.interpolate(
             pos_tokens, size=(new_size, new_size), mode="bicubic", align_corners=False
         )

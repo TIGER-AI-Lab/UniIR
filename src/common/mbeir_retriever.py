@@ -40,9 +40,7 @@ def create_index(config):
     expt_dir_name = config.experiment.path_suffix
 
     idx_cand_pools_config = index_config.cand_pools_config
-    assert (
-        idx_cand_pools_config.enable_idx
-    ), "Indexing is not enabled for candidate pool"
+    assert idx_cand_pools_config.enable_idx, "Indexing is not enabled for candidate pool"
     split_name = "cand_pool"
     cand_pool_name_list = idx_cand_pools_config.cand_pools_name_to_idx
 
@@ -55,9 +53,7 @@ def create_index(config):
         cand_pool_name = cand_pool_name.lower()
 
         embed_data_file = f"mbeir_{cand_pool_name}_{split_name}_embed.npy"
-        embed_data_path = os.path.join(
-            uniir_dir, embed_dir_name, expt_dir_name, split_name, embed_data_file
-        )
+        embed_data_path = os.path.join(uniir_dir, embed_dir_name, expt_dir_name, split_name, embed_data_file)
         embed_data_hashed_id_file = f"mbeir_{cand_pool_name}_{split_name}_ids.npy"
         embed_data_hashed_id_path = os.path.join(
             uniir_dir,
@@ -84,9 +80,7 @@ def create_index(config):
 
         # Create the FAISS index on the CPU
         faiss_config = index_config.faiss_config
-        assert (
-            faiss_config.dim == d
-        ), "The dimension of the index does not match the dimension of the embeddings!"
+        assert faiss_config.dim == d, "The dimension of the index does not match the dimension of the embeddings!"
         metric = getattr(faiss, faiss_config.metric)
         cpu_index = faiss.index_factory(
             faiss_config.dim,
@@ -178,9 +172,7 @@ def load_qrel(filename):
     with open(filename, "r") as f:
         for line in f:
             query_id, _, doc_id, relevance_score, task_id = line.strip().split()
-            if (
-                int(relevance_score) > 0
-            ):  # Assuming only positive relevance scores indicate relevant documents
+            if int(relevance_score) > 0:  # Assuming only positive relevance scores indicate relevant documents
                 if query_id not in qrel:
                     qrel[query_id] = []
                 qrel[query_id].append(doc_id)
@@ -193,14 +185,10 @@ def load_qrel(filename):
     return qrel, qid_to_taskid
 
 
-def search_index(
-    query_embed_path, cand_index_path, batch_size=10, num_cand_to_retrieve=10
-):
+def search_index(query_embed_path, cand_index_path, batch_size=10, num_cand_to_retrieve=10):
     # Load the full query embeddings
     query_embeddings = np.load(query_embed_path).astype("float32")
-    print(
-        f"Faiss: loaded query embeddings from {query_embed_path} with shape: {query_embeddings.shape}"
-    )
+    print(f"Faiss: loaded query embeddings from {query_embed_path} with shape: {query_embeddings.shape}")
 
     # Normalize the full query embeddings
     faiss.normalize_L2(query_embeddings)
@@ -215,9 +203,7 @@ def search_index(
     print(f"Faiss: Number of GPUs used for searching: {ngpus}")
     co = faiss.GpuMultipleClonerOptions()
     co.shard = True  # Use shard to divide the data across the GPUs
-    index_gpu = faiss.index_cpu_to_all_gpus(
-        index_cpu, co=co, ngpu=ngpus
-    )  # This shards the index across all GPUs
+    index_gpu = faiss.index_cpu_to_all_gpus(index_cpu, co=co, ngpu=ngpus)  # This shards the index across all GPUs
 
     all_distances = []
     all_indices = []
@@ -225,9 +211,7 @@ def search_index(
     # Process in batches
     for i in range(0, len(query_embeddings), batch_size):
         batch = query_embeddings[i : i + batch_size]
-        distances, indices = search_index_with_batch(
-            batch, index_gpu, num_cand_to_retrieve
-        )
+        distances, indices = search_index_with_batch(batch, index_gpu, num_cand_to_retrieve)
         all_distances.append(distances)
         all_indices.append(indices)
 
@@ -240,16 +224,11 @@ def search_index(
 
 def search_index_with_batch(query_embeddings_batch, index_gpu, num_cand_to_retrieve=10):
     # Ensure query_embeddings_batch is numpy array with dtype float32
-    assert (
-        isinstance(query_embeddings_batch, np.ndarray)
-        and query_embeddings_batch.dtype == np.float32
-    )
+    assert isinstance(query_embeddings_batch, np.ndarray) and query_embeddings_batch.dtype == np.float32
     print(f"Faiss: query_embeddings_batch.shape: {query_embeddings_batch.shape}")
 
     # Query the multi-GPU index
-    distances, indices = index_gpu.search(
-        query_embeddings_batch, num_cand_to_retrieve
-    )  # (number_of_queries, k)
+    distances, indices = index_gpu.search(query_embeddings_batch, num_cand_to_retrieve)  # (number_of_queries, k)
     return distances, indices
 
 
@@ -302,23 +281,13 @@ def run_retrieval(config, query_embedder_config):
     # Load the dataset splits to embed
     dataset_types = ["train", "val", "test"]
     for split_name in dataset_types:
-        retrieval_dataset_config = getattr(
-            retrieval_config, f"{split_name}_datasets_config", None
-        )
+        retrieval_dataset_config = getattr(retrieval_config, f"{split_name}_datasets_config", None)
         if retrieval_dataset_config and retrieval_dataset_config.enable_retrieve:
             dataset_name_list = getattr(retrieval_dataset_config, "datasets_name", None)
-            cand_pool_name_list = getattr(
-                retrieval_dataset_config, "correspond_cand_pools_name", None
-            )
-            qrel_name_list = getattr(
-                retrieval_dataset_config, "correspond_qrels_name", None
-            )
-            metric_names_list = getattr(
-                retrieval_dataset_config, "correspond_metrics_name", None
-            )
-            dataset_embed_dir = os.path.join(
-                uniir_dir, embed_dir_name, expt_dir_name, split_name
-            )
+            cand_pool_name_list = getattr(retrieval_dataset_config, "correspond_cand_pools_name", None)
+            qrel_name_list = getattr(retrieval_dataset_config, "correspond_qrels_name", None)
+            metric_names_list = getattr(retrieval_dataset_config, "correspond_metrics_name", None)
+            dataset_embed_dir = os.path.join(uniir_dir, embed_dir_name, expt_dir_name, split_name)
             splits.append(
                 (
                     split_name,
@@ -330,10 +299,7 @@ def run_retrieval(config, query_embedder_config):
                 )
             )
             assert (
-                len(dataset_name_list)
-                == len(cand_pool_name_list)
-                == len(qrel_name_list)
-                == len(metric_names_list)
+                len(dataset_name_list) == len(cand_pool_name_list) == len(qrel_name_list) == len(metric_names_list)
             ), "Mismatch between datasets and candidate pools and qrels."
 
     # Pretty Print dataset to index
@@ -366,43 +332,31 @@ def run_retrieval(config, query_embedder_config):
             dataset_name_list, cand_pool_name_list, qrel_name_list, metric_names_list
         ):
             print("\n" + "-" * 30)
-            print(
-                f"Retriever: Retrieving for query:{dataset_name} | split:{split} | from cand_pool:{cand_pool_name}"
-            )
+            print(f"Retriever: Retrieving for query:{dataset_name} | split:{split} | from cand_pool:{cand_pool_name}")
 
             dataset_name = dataset_name.lower()
             cand_pool_name = cand_pool_name.lower()
             qrel_name = qrel_name.lower()
 
             # Load qrels
-            qrel_path = os.path.join(
-                qrel_dir, split, f"mbeir_{qrel_name}_{split}_qrels.txt"
-            )
+            qrel_path = os.path.join(qrel_dir, split, f"mbeir_{qrel_name}_{split}_qrels.txt")
             qrel, qid_to_taskid = load_qrel(qrel_path)
 
             # Load query Hashed IDs
-            embed_query_id_path = os.path.join(
-                dataset_embed_dir, f"mbeir_{dataset_name}_{split}_ids.npy"
-            )
+            embed_query_id_path = os.path.join(dataset_embed_dir, f"mbeir_{dataset_name}_{split}_ids.npy")
             hashed_query_ids = np.load(embed_query_id_path)
 
             # Load query embeddings
-            embed_query_path = os.path.join(
-                dataset_embed_dir, f"mbeir_{dataset_name}_{split}_embed.npy"
-            )
+            embed_query_path = os.path.join(dataset_embed_dir, f"mbeir_{dataset_name}_{split}_embed.npy")
 
             # Load the candidate pool index
-            cand_index_path = os.path.join(
-                cand_index_dir, f"mbeir_{cand_pool_name}_cand_pool.index"
-            )
+            cand_index_path = os.path.join(cand_index_dir, f"mbeir_{cand_pool_name}_cand_pool.index")
 
             # Set up the metric
             # e.g. "Recall@1, Recall@5, Recall@10"
             # TODO: add more metrics
             metric_list = [metric.strip() for metric in metric_names.split(",")]
-            metric_recall_list = [
-                metric for metric in metric_list if "recall" in metric.lower()
-            ]
+            metric_recall_list = [metric for metric in metric_list if "recall" in metric.lower()]
 
             # Search the index
             k = max([int(metric.split("@")[1]) for metric in metric_recall_list])
@@ -422,21 +376,15 @@ def run_retrieval(config, query_embedder_config):
             run_file_name = f"{run_id}_run.txt"
             run_file_path = os.path.join(exp_run_file_dir, run_file_name)
             with open(run_file_path, "w") as run_file:
-                for idx, (distances, indices) in enumerate(
-                    zip(retrieved_cand_dist, retrieved_indices)
-                ):
+                for idx, (distances, indices) in enumerate(zip(retrieved_cand_dist, retrieved_indices)):
                     qid = unhash_qid(hashed_query_ids[idx])
                     task_id = qid_to_taskid[qid]
-                    for rank, (hashed_doc_id, score) in enumerate(
-                        zip(indices, distances), start=1
-                    ):
+                    for rank, (hashed_doc_id, score) in enumerate(zip(indices, distances), start=1):
                         # Format: query-id Q0 document-id rank score run-id task_id
                         # We can remove task_id if we don't need it later using a helper
                         # Note: since we are using the cosine similarity, we don't need to invert the scores.
                         doc_id = unhash_did(hashed_doc_id)
-                        run_file_line = (
-                            f"{qid} Q0 {doc_id} {rank} {score} {run_id} {task_id}\n"
-                        )
+                        run_file_line = f"{qid} Q0 {doc_id} {rank} {score} {run_id} {task_id}\n"
                         run_file.write(run_file_line)
             print(f"Retriever: Run file saved to {run_file_path}")
 
@@ -457,9 +405,7 @@ def run_retrieval(config, query_embedder_config):
 
             # Load raw candidates
             candidate_file_name = f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
-            candidates_path = os.path.join(
-                mbeir_data_dir, candidate_dir_name, candidate_file_name
-            )
+            candidates_path = os.path.join(mbeir_data_dir, candidate_dir_name, candidate_file_name)
             did_to_candidates = {}
             with open(candidates_path, "r") as f:
                 for l in f:
@@ -469,9 +415,7 @@ def run_retrieval(config, query_embedder_config):
 
             # Save raw retrieved results
             retrieved_file_name = f"{run_id}_retrieved.txt"
-            retrieved_file_path = os.path.join(
-                exp_retrieved_cands_dir, retrieved_file_name
-            )
+            retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
             with open(retrieved_file_path, "w") as run_file:
                 for idx, indices in enumerate(retrieved_indices):
                     retrieved_cands = []
@@ -502,9 +446,7 @@ def run_retrieval(config, query_embedder_config):
             recall_values_by_task = defaultdict(lambda: defaultdict(list))
             for i, retrieved_indices_for_qid in enumerate(retrieved_indices):
                 # Map the retrieved FAISS indices to the original mbeir_data_ids
-                retrieved_indices_for_qid = [
-                    unhash_did(idx) for idx in retrieved_indices_for_qid
-                ]
+                retrieved_indices_for_qid = [unhash_did(idx) for idx in retrieved_indices_for_qid]
                 qid = unhash_qid(hashed_query_ids[i])
                 relevant_docs = qrel[qid]
                 task_id = qid_to_taskid[qid]
@@ -512,9 +454,7 @@ def run_retrieval(config, query_embedder_config):
                 # Compute Recall@k for each metric
                 for metric in metric_recall_list:
                     k = int(metric.split("@")[1])
-                    recall_at_k = compute_recall_at_k(
-                        relevant_docs, retrieved_indices_for_qid, k
-                    )
+                    recall_at_k = compute_recall_at_k(relevant_docs, retrieved_indices_for_qid, k)
                     recall_values_by_task[task_id][metric].append(recall_at_k)
 
             for task_id, recalls in recall_values_by_task.items():
@@ -527,9 +467,7 @@ def run_retrieval(config, query_embedder_config):
                     "CandPool": cand_pool_name,
                 }
                 for metric in metric_recall_list:
-                    mean_recall_at_k = round(
-                        sum(recalls[metric]) / len(recalls[metric]), 4
-                    )
+                    mean_recall_at_k = round(sum(recalls[metric]) / len(recalls[metric]), 4)
                     result[metric] = mean_recall_at_k
                     print(f"Retriever: Mean {metric}: {mean_recall_at_k}")
                 eval_results.append(result)
@@ -560,12 +498,8 @@ def run_retrieval(config, query_embedder_config):
         eval_results,
         key=lambda x: (
             x["TaskID"],
-            dataset_order.get(
-                x["Dataset"].lower(), 99
-            ),  # default to 99 for datasets not listed
-            split_order.get(
-                x["Split"].lower(), 99
-            ),  # default to 99 for splits not listed
+            dataset_order.get(x["Dataset"].lower(), 99),  # default to 99 for datasets not listed
+            split_order.get(x["Split"].lower(), 99),  # default to 99 for splits not listed
             cand_pool_order.get(x["CandPool"].lower(), 0),
         ),
     )
@@ -583,9 +517,7 @@ def run_retrieval(config, query_embedder_config):
     for result in eval_results_sorted:
         key = (result["TaskID"], result["Task"], result["Dataset"], result["Split"])
         for metric in available_recall_metrics:
-            grouped_results[key][result["CandPool"]].update(
-                {metric: result.get(metric, None)}
-            )
+            grouped_results[key][result["CandPool"]].update({metric: result.get(metric, None)})
 
     # Write the sorted data to TSV
     if retrieval_config.write_to_tsv:
@@ -612,9 +544,7 @@ def run_retrieval(config, query_embedder_config):
             union_results = cand_pools.get("union", {})
             for metric in available_recall_metrics:
                 for cand_pool, metrics in cand_pools.items():
-                    if (
-                        cand_pool != "union"
-                    ):  # Exclude union pool as it's handled separately
+                    if cand_pool != "union":  # Exclude union pool as it's handled separately
                         row = [
                             task_id,
                             task,
@@ -631,9 +561,7 @@ def run_retrieval(config, query_embedder_config):
                         if union_results:
                             row.extend(["union", union_results.get(metric, "N/A")])
                         else:
-                            row.extend(
-                                ["", ""]
-                            )  # Fill with empty values if no union result
+                            row.extend(["", ""])  # Fill with empty values if no union result
                         tsv_data.append(row)
 
         # Write to TSV
@@ -656,50 +584,34 @@ def run_hard_negative_mining(config):
 
     # Query data file name
     retrieval_train_dataset_config = retrieval_config.train_datasets_config
-    assert (
-        retrieval_train_dataset_config.enable_retrieve
-    ), "Hard negative mining is not enabled for training data"
+    assert retrieval_train_dataset_config.enable_retrieve, "Hard negative mining is not enabled for training data"
     dataset_name = retrieval_train_dataset_config.datasets_name[
         0
     ].lower()  # Only extract hard negatives for the first dataset
     dataset_split_name = "train"
     # Load query data
-    query_data_path = os.path.join(
-        mbeir_data_dir, "train", f"mbeir_{dataset_name}_{dataset_split_name}.jsonl"
-    )
+    query_data_path = os.path.join(mbeir_data_dir, "train", f"mbeir_{dataset_name}_{dataset_split_name}.jsonl")
     query_data_list = load_jsonl_as_list(query_data_path)
 
     # Load query IDs
-    dataset_embed_dir = os.path.join(
-        uniir_dir, embed_dir_name, expt_dir_name, dataset_split_name
-    )
-    embed_data_id_path = os.path.join(
-        dataset_embed_dir, f"mbeir_{dataset_name}_{dataset_split_name}_ids.npy"
-    )
+    dataset_embed_dir = os.path.join(uniir_dir, embed_dir_name, expt_dir_name, dataset_split_name)
+    embed_data_id_path = os.path.join(dataset_embed_dir, f"mbeir_{dataset_name}_{dataset_split_name}_ids.npy")
     query_ids = np.load(embed_data_id_path)
 
     # Load query embeddings
-    embed_data_path = os.path.join(
-        dataset_embed_dir, f"mbeir_{dataset_name}_{dataset_split_name}_embed.npy"
-    )
+    embed_data_path = os.path.join(dataset_embed_dir, f"mbeir_{dataset_name}_{dataset_split_name}_embed.npy")
 
     # Load the candidate pool index
     cand_pool_name = retrieval_train_dataset_config.correspond_cand_pools_name[
         0
     ].lower()  # Only extract the first candidate pool
     cand_pool_split_name = "cand_pool"
-    cand_index_dir = os.path.join(
-        uniir_dir, index_dir_name, expt_dir_name, cand_pool_split_name
-    )
-    cand_index_path = os.path.join(
-        cand_index_dir, f"mbeir_{cand_pool_name}_{cand_pool_split_name}.index"
-    )
+    cand_index_dir = os.path.join(uniir_dir, index_dir_name, expt_dir_name, cand_pool_split_name)
+    cand_index_path = os.path.join(cand_index_dir, f"mbeir_{cand_pool_name}_{cand_pool_split_name}.index")
 
     # Pretty Print dataset to perform hard negative mining
     print("-" * 30)
-    print(
-        f"Hard Negative mining, Datasets: {dataset_name}, Candidate Pools: {cand_pool_name}"
-    )
+    print(f"Hard Negative mining, Datasets: {dataset_name}, Candidate Pools: {cand_pool_name}")
     print("-" * 30)
 
     # Search the index
@@ -719,9 +631,7 @@ def run_hard_negative_mining(config):
         query_id = unhash_qid(query_id)
         assert query_id == query_data["qid"]
         retrieved_indices_for_qid = retrieved_indices[i]
-        retrieved_indices_for_qid = [
-            unhash_did(idx) for idx in retrieved_indices_for_qid
-        ]
+        retrieved_indices_for_qid = [unhash_did(idx) for idx in retrieved_indices_for_qid]
 
         pos_cand_list = query_data["pos_cand_list"]
         neg_cand_list = query_data["neg_cand_list"]
@@ -757,20 +667,14 @@ def run_hard_negative_mining(config):
 
     # Print statistics
     total_entries, _data = count_entries_in_file(query_data_with_hard_negs_path)
-    print(
-        f"MBEIR Train Data with Hard Negatives saved to {query_data_with_hard_negs_path}"
-    )
-    print(
-        f"Total number of entries in {query_data_with_hard_negs_path}: {total_entries}"
-    )
+    print(f"MBEIR Train Data with Hard Negatives saved to {query_data_with_hard_negs_path}")
+    print(f"Total number of entries in {query_data_with_hard_negs_path}: {total_entries}")
     cand_pool_path = os.path.join(
         mbeir_data_dir,
         cand_pool_split_name,
         f"mbeir_{cand_pool_name}_{cand_pool_split_name}.jsonl",
     )
-    cand_pool = load_mbeir_format_pool_file_as_dict(
-        cand_pool_path, doc_key_to_content=True, key_type="did"
-    )
+    cand_pool = load_mbeir_format_pool_file_as_dict(cand_pool_path, doc_key_to_content=True, key_type="did")
     print_mbeir_format_dataset_stats(_data, cand_pool)
 
 
@@ -794,9 +698,7 @@ def parse_arguments():
         action="store_true",
         help="Enable hard negative mining",
     )
-    parser.add_argument(
-        "--enable_retrieval", action="store_true", help="Enable retrieval"
-    )
+    parser.add_argument("--enable_retrieval", action="store_true", help="Enable retrieval")
     return parser.parse_args()
 
 

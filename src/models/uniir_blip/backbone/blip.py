@@ -41,9 +41,7 @@ class BLIP_Base(nn.Module):
         """
         super().__init__()
 
-        self.visual_encoder, vision_width = create_vit(
-            vit, image_size, vit_grad_ckpt, vit_ckpt_layer
-        )
+        self.visual_encoder, vision_width = create_vit(vit, image_size, vit_grad_ckpt, vit_ckpt_layer)
         self.tokenizer = init_tokenizer()
         med_config = BertConfig.from_json_file(med_config)
         med_config.encoder_width = vision_width
@@ -75,9 +73,7 @@ class BLIP_Base(nn.Module):
         elif mode == "multimodal":
             # return multimodel features
             image_embeds = self.visual_encoder(image)
-            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-                image.device
-            )
+            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(image.device)
 
             text.input_ids[:, 0] = self.tokenizer.enc_token_id
             output = self.text_encoder(
@@ -108,9 +104,7 @@ class BLIP_Decoder(nn.Module):
         """
         super().__init__()
 
-        self.visual_encoder, vision_width = create_vit(
-            vit, image_size, vit_grad_ckpt, vit_ckpt_layer
-        )
+        self.visual_encoder, vision_width = create_vit(vit, image_size, vit_grad_ckpt, vit_ckpt_layer)
         self.tokenizer = init_tokenizer()
         med_config = BertConfig.from_json_file(med_config)
         med_config.encoder_width = vision_width
@@ -121,9 +115,7 @@ class BLIP_Decoder(nn.Module):
 
     def forward(self, image, caption):
         image_embeds = self.visual_encoder(image)
-        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-            image.device
-        )
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(image.device)
 
         text = self.tokenizer(
             caption,
@@ -135,9 +127,7 @@ class BLIP_Decoder(nn.Module):
 
         text.input_ids[:, 0] = self.tokenizer.bos_token_id
 
-        decoder_targets = text.input_ids.masked_fill(
-            text.input_ids == self.tokenizer.pad_token_id, -100
-        )
+        decoder_targets = text.input_ids.masked_fill(text.input_ids == self.tokenizer.pad_token_id, -100)
         decoder_targets[:, : self.prompt_length] = -100
 
         decoder_output = self.text_decoder(
@@ -167,18 +157,14 @@ class BLIP_Decoder(nn.Module):
         if not sample:
             image_embeds = image_embeds.repeat_interleave(num_beams, dim=0)
 
-        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-            image.device
-        )
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(image.device)
         model_kwargs = {
             "encoder_hidden_states": image_embeds,
             "encoder_attention_mask": image_atts,
         }
 
         prompt = [self.prompt] * image.size(0)
-        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
-            image.device
-        )
+        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(image.device)
         input_ids[:, 0] = self.tokenizer.bos_token_id
         input_ids = input_ids[:, :-1]
 
@@ -240,9 +226,7 @@ def init_tokenizer():
     return tokenizer
 
 
-def create_vit(
-    vit, image_size, use_grad_checkpointing=False, ckpt_layer=0, drop_path_rate=0
-):
+def create_vit(vit, image_size, use_grad_checkpointing=False, ckpt_layer=0, drop_path_rate=0):
     assert vit in ["base", "large"], "vit parameter must be base or large"
     if vit == "base":
         vision_width = 768
@@ -279,9 +263,7 @@ def is_url(url_or_filename):
 def load_checkpoint(model, url_or_filename):
     if is_url(url_or_filename):
         # use a single process to avoid unnecessary download
-        cached_file = download_cached_file(
-            url_or_filename, check_hash=False, progress=True
-        )
+        cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
         checkpoint = torch.load(cached_file, map_location="cpu")
     elif os.path.isfile(url_or_filename):
         checkpoint = torch.load(url_or_filename, map_location="cpu")
