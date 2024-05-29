@@ -45,17 +45,11 @@ class InteractiveRetriever:
 
         # Ensure the model has an 'encode' method before generating embeddings
         if not callable(getattr(model, "encode_mbeir_batch")):
-            raise AttributeError(
-                "The provided model does not have a callable 'encode' method."
-            )
+            raise AttributeError("The provided model does not have a callable 'encode' method.")
         if not callable(getattr(model, "get_img_preprocess_fn")):
-            raise AttributeError(
-                "The provided model does not have an 'img_preprocess_fn' attribute."
-            )
+            raise AttributeError("The provided model does not have an 'img_preprocess_fn' attribute.")
         if not callable(getattr(model, "get_tokenizer")):
-            raise AttributeError(
-                "The provided model does not have a 'tokenizer' attribute."
-            )
+            raise AttributeError("The provided model does not have a 'tokenizer' attribute.")
         self.img_preprocess_fn = model.get_img_preprocess_fn()
         self.tokenizer = model.get_tokenizer()
 
@@ -83,25 +77,15 @@ class InteractiveRetriever:
             if query_modality == QueryModality.TEXT.value:
                 task_id = 0
                 candidate_modality = QueryModality.IMAGE.value
-                assert (
-                    query_txt
-                ), "Query with 'text' modality must have non-null 'query_txt'"
-                assert (
-                    query_img_path is None
-                ), "Query with 'text' modality must have null 'query_img_path'"
+                assert query_txt, "Query with 'text' modality must have non-null 'query_txt'"
+                assert query_img_path is None, "Query with 'text' modality must have null 'query_img_path'"
             elif query_modality == QueryModality.IMAGE.value:
                 task_id = 3
                 candidate_modality = QueryModality.TEXT.value
-                assert (
-                    query_txt is None
-                ), "Query with 'image' modality must have null 'query_txt'"
-                assert (
-                    query_img_path
-                ), "Query with 'image' modality must have non-null 'query_img_path'"
+                assert query_txt is None, "Query with 'image' modality must have null 'query_txt'"
+                assert query_img_path, "Query with 'image' modality must have non-null 'query_img_path'"
             else:
-                raise ValueError(
-                    "Only 'text' and 'image' query modalities are supported."
-                )
+                raise ValueError("Only 'text' and 'image' query modalities are supported.")
             self.queries.append(
                 {
                     # Hardcoded qid in format of dataset_id:query_num.

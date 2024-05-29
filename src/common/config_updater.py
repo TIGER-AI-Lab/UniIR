@@ -82,7 +82,5 @@ if __name__ == "__main__":
     enable_instruct = args.enable_instruct == "True"
     if args.update_mbeir_yaml_instruct_status:
         if args.mbeir_yaml_file_path == "ReplaceMe":
-            print(
-                "The default YAML file path has not been replaced with an actual file path."
-            )
+            print("The default YAML file path has not been replaced with an actual file path.")
         update_mbeir_yaml_instruct_status(args.mbeir_yaml_file_path, enable_instruct)

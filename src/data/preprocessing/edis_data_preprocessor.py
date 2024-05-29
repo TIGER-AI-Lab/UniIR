@@ -152,9 +152,7 @@ def edis_to_mbeir_entry(
     return mbeir_entry
 
 
-def edis_to_mbeir(
-    edis_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True
-):
+def edis_to_mbeir(edis_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True):
     mbeir_entries = []
     # Load candidate pool
     cand_pool_dict = load_mbeir_format_pool_file_as_dict(
@@ -204,9 +202,7 @@ def generate_edis_candidate_pool(
                 for edis_entry in edis_data:
                     for candidate in edis_entry["candidates"]:
                         # Note: we always store relative paths to MBEIR data directory
-                        img_path = os.path.join(
-                            "mbeir_images", "edis_images", candidate["image"]
-                        )
+                        img_path = os.path.join("mbeir_images", "edis_images", candidate["image"])
                         headline = format_string(candidate["headline"])
 
                         # Skip invalid entries
@@ -232,24 +228,18 @@ def generate_edis_candidate_pool(
                                 src_content = {
                                     "candidate_id": str(candidate["candidate_id"]),
                                 }  # Cast to string to avoid JSON serialization error
-                                candidate_pool_entry["src_content"] = json.dumps(
-                                    src_content
-                                )
+                                candidate_pool_entry["src_content"] = json.dumps(src_content)
                             document_id += 1
                             outfile.write(json.dumps(candidate_pool_entry) + "\n")
                             seen_candidates.add((headline, img_path))
 
         # edis_candidate_full_file_path is a json file candidates_full.json
-        assert edis_candidate_full_file_path.endswith(
-            ".json"
-        ), "Only JSON files are supported."
+        assert edis_candidate_full_file_path.endswith(".json"), "Only JSON files are supported."
         with open(edis_candidate_full_file_path, "r") as source:
             edis_data = json.load(source)
             for edis_entry in edis_data:
                 # Note: we always store relative paths to MBEIR data directory
-                img_path = os.path.join(
-                    "mbeir_images", "edis_images", edis_entry["image"]
-                )
+                img_path = os.path.join("mbeir_images", "edis_images", edis_entry["image"])
                 headline = format_string(edis_entry["contents"])
 
                 # Skip invalid entries
@@ -313,9 +303,7 @@ def parallel_process_edis_image_directory(edis_images_dir):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format EDIS images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format EDIS images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -404,9 +392,7 @@ def main():
             ("test", edis_test_data_path),
         ]
         for split, data_path in data_set_list:
-            mbeir_format_edis_data_path = os.path.join(
-                edis_dir, f"mbeir_edis_{split}.jsonl"
-            )
+            mbeir_format_edis_data_path = os.path.join(edis_dir, f"mbeir_edis_{split}.jsonl")
 
             with open(data_path, "r") as file:
                 data = json.load(file)
@@ -429,12 +415,8 @@ def main():
 
             # Print statistics
             total_entries, data = count_entries_in_file(mbeir_format_edis_data_path)
-            print(
-                f"MBEIR format EDIS {split} data saved to {mbeir_format_edis_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_edis_data_path}: {total_entries}"
-            )
+            print(f"MBEIR format EDIS {split} data saved to {mbeir_format_edis_data_path}")
+            print(f"Total number of entries in {mbeir_format_edis_data_path}: {total_entries}")
             edis_cand_pool = load_mbeir_format_pool_file_as_dict(
                 edis_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -443,12 +425,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        edis_train_candidate_pool_path = os.path.join(
-            edis_dir, "mbeir_edis_train_cand_pool.jsonl"
-        )
-        mbeir_format_edis_train_data_path = os.path.join(
-            edis_dir, f"mbeir_edis_train.jsonl"
-        )
+        edis_train_candidate_pool_path = os.path.join(edis_dir, "mbeir_edis_train_cand_pool.jsonl")
+        mbeir_format_edis_train_data_path = os.path.join(edis_dir, f"mbeir_edis_train.jsonl")
         assert os.path.exists(
             mbeir_format_edis_train_data_path
         ), f"File {mbeir_format_edis_train_data_path} does not exist"
@@ -458,9 +436,7 @@ def main():
         edis_cand_pool = load_mbeir_format_pool_file_as_dict(
             edis_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_edis_train_data = load_jsonl_as_list(
-            mbeir_format_edis_train_data_path
-        )
+        mbeir_format_edis_train_data = load_jsonl_as_list(mbeir_format_edis_train_data_path)
         for entry in mbeir_format_edis_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -469,16 +445,12 @@ def main():
                     edis_train_candidate_pool[did] = cand
                 else:
                     if edis_train_candidate_pool[did] != cand:
-                        print(
-                            f"Duplicate did for two candidates found: {edis_train_candidate_pool[did]} and {cand}"
-                        )
+                        print(f"Duplicate did for two candidates found: {edis_train_candidate_pool[did]} and {cand}")
 
         # Save the training candidate pool
         edis_train_candidate_pool_list = list(edis_train_candidate_pool.values())
         edis_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(
-            edis_train_candidate_pool_list, edis_train_candidate_pool_path
-        )
+        save_list_as_jsonl(edis_train_candidate_pool_list, edis_train_candidate_pool_path)
         print(f"Saved training candidate pool to {edis_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(edis_train_candidate_pool_path)
 

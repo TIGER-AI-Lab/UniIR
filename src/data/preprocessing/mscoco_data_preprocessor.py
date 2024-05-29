@@ -81,23 +81,15 @@ def mscoco_to_mbeir_entry(
     mbeir_entries = []
     img_path = mscoco_entry["image"]
     # Note: we always store relative paths to MBEIR data directory
-    sub_directory, base_filename_with_ext = os.path.split(
-        img_path
-    )  # e.g. "train2014", "COCO_train2014_009.jpg"
+    sub_directory, base_filename_with_ext = os.path.split(img_path)  # e.g. "train2014", "COCO_train2014_009.jpg"
     base_filename = os.path.splitext(base_filename_with_ext)[0]
-    img_path = os.path.join(
-        "mbeir_images", "mscoco_images", sub_directory, base_filename + ".jpg"
-    )
+    img_path = os.path.join("mbeir_images", "mscoco_images", sub_directory, base_filename + ".jpg")
     if not is_valid_image(os.path.join(mbeir_data_dir, img_path)):
         print(f"Warning: Invalid image: {img_path}")  # if the image is invalid, skip it
         return None
 
     # val.json has a list of captions, while train.json has a single caption
-    captions = (
-        mscoco_entry["caption"]
-        if isinstance(mscoco_entry["caption"], list)
-        else [mscoco_entry["caption"]]
-    )
+    captions = mscoco_entry["caption"] if isinstance(mscoco_entry["caption"], list) else [mscoco_entry["caption"]]
 
     # Generate image to text MBEIR entry
     mbeir_entry_img2txt = {
@@ -124,9 +116,7 @@ def mscoco_to_mbeir_entry(
         doc_key = generate_mbeir_format_doc_key(_img2txt_candidate)
         img2txt_candidate = candidate_pool.get(doc_key, None)
         assert img2txt_candidate, f"Cannot find candidate for {doc_key}"
-        mbeir_entry_img2txt["pos_cand_list"].append(
-            img2txt_candidate["did"]
-        )  # We only store the document ID
+        mbeir_entry_img2txt["pos_cand_list"].append(img2txt_candidate["did"])  # We only store the document ID
 
         # Generate text to image MBEIR entry
         mbeir_entry_txt2img = {
@@ -155,18 +145,14 @@ def mscoco_to_mbeir_entry(
     return mbeir_entries
 
 
-def mscoco_to_mbeir(
-    mscoco_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True
-):
+def mscoco_to_mbeir(mscoco_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True):
     """
     mscoco dataset to MBEIR format.
     """
     mbeir_entries_merged = []
 
     # Load candidate pool
-    cand_pool_dict = load_mbeir_format_pool_file_as_dict(
-        candidate_pool_file_path, doc_key_to_content=True
-    )
+    cand_pool_dict = load_mbeir_format_pool_file_as_dict(candidate_pool_file_path, doc_key_to_content=True)
 
     for mscoco_entry in mscoco_data:
         mbeir_entries = mscoco_to_mbeir_entry(
@@ -202,8 +188,7 @@ def generate_mscoco_candidate_pool(
     mscoco_data_files = [
         os.path.join(mscoco_dir, filename)
         for filename in os.listdir(mscoco_dir)
-        if filename.endswith(".json")
-        and "coco_karpathy" in filename  # look for the mentioned json files
+        if filename.endswith(".json") and "coco_karpathy" in filename  # look for the mentioned json files
     ]
 
     document_id = 1  # Note: We start from 1 for document IDs
@@ -279,9 +264,7 @@ def generate_mscoco_candidate_pool(
                     for caption in captions[:5]:  # Only use the first 5 captions
                         txt = format_string(caption)
                         if not txt:
-                            print(
-                                f"Warning: Empty caption: {mscoco_entry}"
-                            )  # if the caption is empty, skip it
+                            print(f"Warning: Empty caption: {mscoco_entry}")  # if the caption is empty, skip it
                             continue
 
                         candidate_pool_entry_txt = {
@@ -307,9 +290,7 @@ def generate_mscoco_candidate_pool(
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format mscoco images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format mscoco images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -374,9 +355,7 @@ def main():
     # So all the paths are hardcoded.
     mscoco_dir = os.path.join(args.mbeir_data_dir, args.mscoco_dir)
     mscoco_images_dir = os.path.join(args.mbeir_data_dir, args.mscoco_images_dir)
-    mscoco_candidate_pool_path = os.path.join(
-        mscoco_dir, "mbeir_mscoco_cand_pool.jsonl"
-    )
+    mscoco_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_cand_pool.jsonl")
 
     if args.download:
         json_urls = {
@@ -423,9 +402,7 @@ def main():
                     return num_entries, num_captions
 
             num_entries, num_captions = count_entries_and_captions(coco_data_path)
-            print(
-                f"{coco_data_path} - Number of images: {num_entries}, Number of captions: {num_captions}"
-            )
+            print(f"{coco_data_path} - Number of images: {num_entries}, Number of captions: {num_captions}")
             total_entries += num_entries
             total_captions += num_captions
 
@@ -446,21 +423,11 @@ def main():
 
     # Generate candidate pool
     if args.enable_candidate_pool:
-        mscoco_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_cand_pool.jsonl"
-        )
-        mscoco_txt_val_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_txt_val_cand_pool.jsonl"
-        )
-        mscoco_txt_test_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_txt_test_cand_pool.jsonl"
-        )
-        mscoco_img_val_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_img_val_cand_pool.jsonl"
-        )
-        mscoco_img_test_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_img_test_cand_pool.jsonl"
-        )
+        mscoco_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_cand_pool.jsonl")
+        mscoco_txt_val_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_txt_val_cand_pool.jsonl")
+        mscoco_txt_test_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_txt_test_cand_pool.jsonl")
+        mscoco_img_val_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_img_val_cand_pool.jsonl")
+        mscoco_img_test_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_img_test_cand_pool.jsonl")
         print("Generating mscoco candidate pool in mbeir format...")
         generate_mscoco_candidate_pool(
             mscoco_dir,
@@ -473,21 +440,13 @@ def main():
         )
         print(f"Candidate pool saved to {mscoco_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_candidate_pool_path)
-        print(
-            f"Validation text candidate pool saved to {mscoco_txt_val_candidate_pool_path}"
-        )
+        print(f"Validation text candidate pool saved to {mscoco_txt_val_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_txt_val_candidate_pool_path)
-        print(
-            f"Test text candidate pool saved to {mscoco_txt_test_candidate_pool_path}"
-        )
+        print(f"Test text candidate pool saved to {mscoco_txt_test_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_txt_test_candidate_pool_path)
-        print(
-            f"Validation image candidate pool saved to {mscoco_img_val_candidate_pool_path}"
-        )
+        print(f"Validation image candidate pool saved to {mscoco_img_val_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_img_val_candidate_pool_path)
-        print(
-            f"Test image candidate pool saved to {mscoco_img_test_candidate_pool_path}"
-        )
+        print(f"Test image candidate pool saved to {mscoco_img_test_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_img_test_candidate_pool_path)
 
     # Convert mscoco data to MBEIR format
@@ -500,9 +459,7 @@ def main():
             ("test", os.path.join(mscoco_dir, "coco_karpathy_test.json")),
         ]
         for split, data_path in data_splits_paths:
-            mbeir_format_mscoco_file_path = os.path.join(
-                mscoco_dir, f"mbeir_mscoco_{split}.jsonl"
-            )
+            mbeir_format_mscoco_file_path = os.path.join(mscoco_dir, f"mbeir_mscoco_{split}.jsonl")
             with open(data_path, "r") as source:
                 mscoco_data = json.load(source)
             mbeir_entries = mscoco_to_mbeir(
@@ -512,9 +469,7 @@ def main():
             )
 
             # Aggregate data
-            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(
-                mbeir_entries, print_duplicate=False
-            )
+            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(mbeir_entries, print_duplicate=False)
 
             # Trim the training data queries for text2image
             if split == "train":
@@ -538,12 +493,8 @@ def main():
 
             # Print statistics
             total_entries, _data = count_entries_in_file(mbeir_format_mscoco_file_path)
-            print(
-                f"MBEIR format MMSCOCO {split} data saved to {mbeir_format_mscoco_file_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_mscoco_file_path}: {total_entries}"
-            )
+            print(f"MBEIR format MMSCOCO {split} data saved to {mbeir_format_mscoco_file_path}")
+            print(f"Total number of entries in {mbeir_format_mscoco_file_path}: {total_entries}")
             mscoco_cand_pool = load_mbeir_format_pool_file_as_dict(
                 mscoco_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -552,12 +503,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        mscoco_train_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_train_cand_pool.jsonl"
-        )
-        mbeir_format_mscoco_train_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_train.jsonl"
-        )
+        mscoco_train_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_train_cand_pool.jsonl")
+        mbeir_format_mscoco_train_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_train.jsonl")
         assert os.path.exists(
             mbeir_format_mscoco_train_data_path
         ), f"File {mbeir_format_mscoco_train_data_path} does not exist"
@@ -567,9 +514,7 @@ def main():
         mscoco_cand_pool = load_mbeir_format_pool_file_as_dict(
             mscoco_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_mscoco_train_data = load_jsonl_as_list(
-            mbeir_format_mscoco_train_data_path
-        )
+        mbeir_format_mscoco_train_data = load_jsonl_as_list(mbeir_format_mscoco_train_data_path)
         for entry in mbeir_format_mscoco_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -578,28 +523,20 @@ def main():
                     mscoco_train_candidate_pool[did] = cand
                 else:
                     if mscoco_train_candidate_pool[did] != cand:
-                        print(
-                            f"Duplicate did for two candidates found: {mscoco_train_candidate_pool[did]} and {cand}"
-                        )
+                        print(f"Duplicate did for two candidates found: {mscoco_train_candidate_pool[did]} and {cand}")
 
         # Save the training candidate pool
         mscoco_train_candidate_pool_list = list(mscoco_train_candidate_pool.values())
         mscoco_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(
-            mscoco_train_candidate_pool_list, mscoco_train_candidate_pool_path
-        )
+        save_list_as_jsonl(mscoco_train_candidate_pool_list, mscoco_train_candidate_pool_path)
         print(f"Saved training candidate pool to {mscoco_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(mscoco_train_candidate_pool_path)
 
     # Separate the val and test data into txt and img files
     if args.separate_val_test_to_txt_img:
         print("Separating val and test data into txt and img files...")
-        mbeir_format_mscoco_val_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_val.jsonl"
-        )
-        mbeir_format_mscoco_test_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_test.jsonl"
-        )
+        mbeir_format_mscoco_val_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_val.jsonl")
+        mbeir_format_mscoco_test_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_test.jsonl")
         assert os.path.exists(
             mbeir_format_mscoco_val_data_path
         ), f"File {mbeir_format_mscoco_val_data_path} does not exist"
@@ -607,25 +544,13 @@ def main():
             mbeir_format_mscoco_test_data_path
         ), f"File {mbeir_format_mscoco_test_data_path} does not exist"
 
-        mbeir_format_mscoco_txt_val_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_txt_val.jsonl"
-        )
-        mbeir_format_mscoco_txt_test_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_txt_test.jsonl"
-        )
-        mbeir_format_mscoco_img_val_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_img_val.jsonl"
-        )
-        mbeir_format_mscoco_img_test_data_path = os.path.join(
-            mscoco_dir, f"mbeir_mscoco_img_test.jsonl"
-        )
+        mbeir_format_mscoco_txt_val_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_txt_val.jsonl")
+        mbeir_format_mscoco_txt_test_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_txt_test.jsonl")
+        mbeir_format_mscoco_img_val_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_img_val.jsonl")
+        mbeir_format_mscoco_img_test_data_path = os.path.join(mscoco_dir, f"mbeir_mscoco_img_test.jsonl")
 
-        mbeir_format_mscoco_val_data = load_jsonl_as_list(
-            mbeir_format_mscoco_val_data_path
-        )
-        mbeir_format_mscoco_test_data = load_jsonl_as_list(
-            mbeir_format_mscoco_test_data_path
-        )
+        mbeir_format_mscoco_val_data = load_jsonl_as_list(mbeir_format_mscoco_val_data_path)
+        mbeir_format_mscoco_test_data = load_jsonl_as_list(mbeir_format_mscoco_test_data_path)
 
         mbeir_format_mscoco_txt_val_data = []
         mbeir_format_mscoco_txt_test_data = []
@@ -644,18 +569,10 @@ def main():
             else:
                 mbeir_format_mscoco_img_test_data.append(entry)
 
-        save_list_as_jsonl(
-            mbeir_format_mscoco_txt_val_data, mbeir_format_mscoco_txt_val_data_path
-        )
-        save_list_as_jsonl(
-            mbeir_format_mscoco_txt_test_data, mbeir_format_mscoco_txt_test_data_path
-        )
-        save_list_as_jsonl(
-            mbeir_format_mscoco_img_val_data, mbeir_format_mscoco_img_val_data_path
-        )
-        save_list_as_jsonl(
-            mbeir_format_mscoco_img_test_data, mbeir_format_mscoco_img_test_data_path
-        )
+        save_list_as_jsonl(mbeir_format_mscoco_txt_val_data, mbeir_format_mscoco_txt_val_data_path)
+        save_list_as_jsonl(mbeir_format_mscoco_txt_test_data, mbeir_format_mscoco_txt_test_data_path)
+        save_list_as_jsonl(mbeir_format_mscoco_img_val_data, mbeir_format_mscoco_img_val_data_path)
+        save_list_as_jsonl(mbeir_format_mscoco_img_test_data, mbeir_format_mscoco_img_test_data_path)
 
         print(f"Saved val text data to {mbeir_format_mscoco_txt_val_data_path}")
         print(f"Saved test text data to {mbeir_format_mscoco_txt_test_data_path}")
@@ -663,54 +580,30 @@ def main():
         print(f"Saved test image data to {mbeir_format_mscoco_img_test_data_path}")
 
         # Print statistics
-        mscoco_txt_val_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_txt_val_cand_pool.jsonl"
-        )
-        mscoco_txt_test_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_txt_test_cand_pool.jsonl"
-        )
-        mscoco_img_val_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_img_val_cand_pool.jsonl"
-        )
-        mscoco_img_test_candidate_pool_path = os.path.join(
-            mscoco_dir, "mbeir_mscoco_img_test_cand_pool.jsonl"
-        )
-        total_entries, _data = count_entries_in_file(
-            mbeir_format_mscoco_txt_val_data_path
-        )
-        print(
-            f"Total number of entries in {mbeir_format_mscoco_txt_val_data_path}: {total_entries}"
-        )
+        mscoco_txt_val_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_txt_val_cand_pool.jsonl")
+        mscoco_txt_test_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_txt_test_cand_pool.jsonl")
+        mscoco_img_val_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_img_val_cand_pool.jsonl")
+        mscoco_img_test_candidate_pool_path = os.path.join(mscoco_dir, "mbeir_mscoco_img_test_cand_pool.jsonl")
+        total_entries, _data = count_entries_in_file(mbeir_format_mscoco_txt_val_data_path)
+        print(f"Total number of entries in {mbeir_format_mscoco_txt_val_data_path}: {total_entries}")
         mscoco_img_val_candidate_pool = load_mbeir_format_pool_file_as_dict(
             mscoco_img_val_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
         print_mbeir_format_dataset_stats(_data, mscoco_img_val_candidate_pool)
-        total_entries, _data = count_entries_in_file(
-            mbeir_format_mscoco_txt_test_data_path
-        )
-        print(
-            f"Total number of entries in {mbeir_format_mscoco_txt_test_data_path}: {total_entries}"
-        )
+        total_entries, _data = count_entries_in_file(mbeir_format_mscoco_txt_test_data_path)
+        print(f"Total number of entries in {mbeir_format_mscoco_txt_test_data_path}: {total_entries}")
         mscoco_img_test_candidate_pool = load_mbeir_format_pool_file_as_dict(
             mscoco_img_test_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
         print_mbeir_format_dataset_stats(_data, mscoco_img_test_candidate_pool)
-        total_entries, _data = count_entries_in_file(
-            mbeir_format_mscoco_img_val_data_path
-        )
-        print(
-            f"Total number of entries in {mbeir_format_mscoco_img_val_data_path}: {total_entries}"
-        )
+        total_entries, _data = count_entries_in_file(mbeir_format_mscoco_img_val_data_path)
+        print(f"Total number of entries in {mbeir_format_mscoco_img_val_data_path}: {total_entries}")
         mscoco_txt_val_candidate_pool = load_mbeir_format_pool_file_as_dict(
             mscoco_txt_val_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
         print_mbeir_format_dataset_stats(_data, mscoco_txt_val_candidate_pool)
-        total_entries, _data = count_entries_in_file(
-            mbeir_format_mscoco_img_test_data_path
-        )
-        print(
-            f"Total number of entries in {mbeir_format_mscoco_img_test_data_path}: {total_entries}"
-        )
+        total_entries, _data = count_entries_in_file(mbeir_format_mscoco_img_test_data_path)
+        print(f"Total number of entries in {mbeir_format_mscoco_img_test_data_path}: {total_entries}")
         mscoco_txt_test_candidate_pool = load_mbeir_format_pool_file_as_dict(
             mscoco_txt_test_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )

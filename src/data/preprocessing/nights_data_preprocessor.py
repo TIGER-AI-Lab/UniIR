@@ -104,12 +104,8 @@ def nights_to_mbeir_entry(
 
     # Add candidates
     def get_key_from_path(img_path):
-        _, tail = os.path.split(
-            os.path.split(img_path)[0]
-        )  # Split twice to get the '000' folder name
-        filename = os.path.splitext(os.path.basename(img_path))[
-            0
-        ]  # Get filename without extension
+        _, tail = os.path.split(os.path.split(img_path)[0])  # Split twice to get the '000' folder name
+        filename = os.path.splitext(os.path.basename(img_path))[0]  # Get filename without extension
         return os.path.join(tail, filename)
 
     # For positive candidate and negative candidate
@@ -127,18 +123,14 @@ def nights_to_mbeir_entry(
     if pos_candidate:
         mbeir_entry["pos_cand_list"].append(pos_candidate["did"])
     else:
-        print(
-            f"Warning: No positive candidate for reference {nights_entry['reference']}"
-        )
+        print(f"Warning: No positive candidate for reference {nights_entry['reference']}")
         return None
 
     neg_candidate = candidate_pool.get(neg_key, None)
     if neg_candidate:
         mbeir_entry["neg_cand_list"].append(neg_candidate["did"])
     else:
-        print(
-            f"Warning: No negative candidate for reference {nights_entry['reference']}"
-        )
+        print(f"Warning: No negative candidate for reference {nights_entry['reference']}")
         return None
     return mbeir_entry
 
@@ -152,9 +144,7 @@ def load_mbeir_format_nights_pool_file_as_dict(pool_file_path):
     with open(pool_file_path, "r") as f:
         for line in f:
             entry = json.loads(line.strip())
-            src_content = json.loads(
-                entry["src_content"]
-            )  # Load the src_content as a dictionary
+            src_content = json.loads(entry["src_content"])  # Load the src_content as a dictionary
             doc_key = src_content["image_id"]  # Use the image name as the key
             assert doc_key not in pool_dict, f"Duplicate key: {doc_key}"
             pool_dict[doc_key] = entry
@@ -175,18 +165,14 @@ def get_deduplicated_nights_data(nights_data):
     return list(deduplicated_data.values())
 
 
-def nights_to_mbeir(
-    nights_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True
-):
+def nights_to_mbeir(nights_data, candidate_pool_file_path, mbeir_data_dir, include_src_content=True):
     """
     nights dataset to MBEIR format.
     """
     mbeir_entries = []
 
     # Load candidate pool
-    candidate_pool = load_mbeir_format_nights_pool_file_as_dict(
-        candidate_pool_file_path
-    )
+    candidate_pool = load_mbeir_format_nights_pool_file_as_dict(candidate_pool_file_path)
     # nights_data = get_deduplicated_nights_data(nights_data)
 
     for nights_entry in nights_data:
@@ -235,9 +221,7 @@ def generate_nights_candidate_pool(
         for image_name in image_name_set:
             # Note: we always store relative paths to MBEIR data directory
             dir_name = os.path.basename(nights_distort_images_dir)
-            img_path_rel = os.path.join(
-                "mbeir_images", "nights_images", dir_name, image_name
-            )
+            img_path_rel = os.path.join("mbeir_images", "nights_images", dir_name, image_name)
             img_path_abs = os.path.join(mbeir_data_dir, img_path_rel)
 
             # if the image is valid, add it to the candidate pool
@@ -258,9 +242,7 @@ def generate_nights_candidate_pool(
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Format nights images and refactor dataset to MBEIR format."
-    )
+    parser = argparse.ArgumentParser(description="Format nights images and refactor dataset to MBEIR format.")
     parser.add_argument(
         "--mbeir_data_dir",
         type=str,
@@ -311,9 +293,7 @@ def main():
     nights_dir = os.path.join(args.mbeir_data_dir, args.nights_dir)
     nights_images_dir = os.path.join(args.mbeir_data_dir, args.nights_images_dir)
     nights_distort_images_dir = os.path.join(nights_images_dir, "distort")
-    nights_candidate_pool_path = os.path.join(
-        nights_dir, "mbeir_nights_cand_pool.jsonl"
-    )
+    nights_candidate_pool_path = os.path.join(nights_dir, "mbeir_nights_cand_pool.jsonl")
     nights_data_csv_path = os.path.join(nights_dir, "data.csv")
     nights_captions_dir = os.path.join(nights_dir, "captions")
 
@@ -352,9 +332,7 @@ def main():
         data_set_list = [("train", train_data), ("val", val_data), ("test", test_data)]
 
         for split, nights_data_split in data_set_list:
-            mbeir_format_nights_data_path = os.path.join(
-                nights_dir, f"mbeir_nights_{split}.jsonl"
-            )
+            mbeir_format_nights_data_path = os.path.join(nights_dir, f"mbeir_nights_{split}.jsonl")
             mbeir_entries = nights_to_mbeir(
                 nights_data_split,
                 nights_candidate_pool_path,
@@ -362,9 +340,7 @@ def main():
                 include_src_content=True,
             )
 
-            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(
-                mbeir_entries, print_duplicate=True
-            )
+            mbeir_entries = aggregate_candidates_for_mbeir_format_dataset(mbeir_entries, print_duplicate=True)
 
             # Generate query ID
             for i, entry in enumerate(mbeir_entries):
@@ -374,12 +350,8 @@ def main():
 
             # Print statistics
             total_entries, _data = count_entries_in_file(mbeir_format_nights_data_path)
-            print(
-                f"MBEIR format nights {split} data saved to {mbeir_format_nights_data_path}"
-            )
-            print(
-                f"Total number of entries in {mbeir_format_nights_data_path}: {total_entries}"
-            )
+            print(f"MBEIR format nights {split} data saved to {mbeir_format_nights_data_path}")
+            print(f"Total number of entries in {mbeir_format_nights_data_path}: {total_entries}")
             nights_cand_pool_dict = load_mbeir_format_pool_file_as_dict(
                 nights_candidate_pool_path, doc_key_to_content=True, key_type="did"
             )
@@ -388,12 +360,8 @@ def main():
     # Save the training candidate pool for hard negative mining
     if args.enable_training_candidate_pool:
         print("Generating training candidate pool in mbeir format...")
-        nights_train_candidate_pool_path = os.path.join(
-            nights_dir, "mbeir_nights_train_cand_pool.jsonl"
-        )
-        mbeir_format_nights_train_data_path = os.path.join(
-            nights_dir, f"mbeir_nights_train.jsonl"
-        )
+        nights_train_candidate_pool_path = os.path.join(nights_dir, "mbeir_nights_train_cand_pool.jsonl")
+        mbeir_format_nights_train_data_path = os.path.join(nights_dir, f"mbeir_nights_train.jsonl")
         assert os.path.exists(
             mbeir_format_nights_train_data_path
         ), f"File {mbeir_format_nights_train_data_path} does not exist"
@@ -403,9 +371,7 @@ def main():
         nights_cand_pool = load_mbeir_format_pool_file_as_dict(
             nights_candidate_pool_path, doc_key_to_content=True, key_type="did"
         )
-        mbeir_format_nights_train_data = load_jsonl_as_list(
-            mbeir_format_nights_train_data_path
-        )
+        mbeir_format_nights_train_data = load_jsonl_as_list(mbeir_format_nights_train_data_path)
         for entry in mbeir_format_nights_train_data:
             cand_list = entry["pos_cand_list"] + entry["neg_cand_list"]
             for did in cand_list:
@@ -414,16 +380,12 @@ def main():
                     nights_train_candidate_pool[did] = cand
                 else:
                     if nights_train_candidate_pool[did] != cand:
-                        print(
-                            f"Duplicate did for two candidates found: {nights_train_candidate_pool[did]} and {cand}"
-                        )
+                        print(f"Duplicate did for two candidates found: {nights_train_candidate_pool[did]} and {cand}")
 
         # Save the training candidate pool
         nights_train_candidate_pool_list = list(nights_train_candidate_pool.values())
         nights_train_candidate_pool_list.sort(key=lambda x: int(x["did"].split(":")[1]))
-        save_list_as_jsonl(
-            nights_train_candidate_pool_list, nights_train_candidate_pool_path
-        )
+        save_list_as_jsonl(nights_train_candidate_pool_list, nights_train_candidate_pool_path)
         print(f"Saved training candidate pool to {nights_train_candidate_pool_path}")
         print_mbeir_format_cand_pool_stats(nights_train_candidate_pool_path)
 
