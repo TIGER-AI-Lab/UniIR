@@ -43,20 +43,12 @@ def run_automatic_error_analysis(config):
     # Load the dataset splits to analysis
     dataset_types = ["train", "val", "test"]
     for split_name in dataset_types:
-        analysis_dataset_config = getattr(
-            analysis_config, f"{split_name}_datasets_config", None
-        )
+        analysis_dataset_config = getattr(analysis_config, f"{split_name}_datasets_config", None)
         if analysis_dataset_config and analysis_dataset_config.enable_retrieve:
             dataset_name_list = getattr(analysis_dataset_config, "datasets_name", None)
-            cand_pool_name_list = getattr(
-                analysis_dataset_config, "correspond_cand_pools_name", None
-            )
-            qrel_name_list = getattr(
-                analysis_dataset_config, "correspond_qrels_name", None
-            )
-            metric_names_list = getattr(
-                analysis_dataset_config, "correspond_metrics_name", None
-            )
+            cand_pool_name_list = getattr(analysis_dataset_config, "correspond_cand_pools_name", None)
+            qrel_name_list = getattr(analysis_dataset_config, "correspond_qrels_name", None)
+            metric_names_list = getattr(analysis_dataset_config, "correspond_metrics_name", None)
             splits.append(
                 (
                     split_name,
@@ -67,10 +59,7 @@ def run_automatic_error_analysis(config):
                 )
             )
             assert (
-                len(dataset_name_list)
-                == len(cand_pool_name_list)
-                == len(qrel_name_list)
-                == len(metric_names_list)
+                len(dataset_name_list) == len(cand_pool_name_list) == len(qrel_name_list) == len(metric_names_list)
             ), "Mismatch between datasets and candidate pools and qrels."
 
     # Pretty Print dataset to index
@@ -101,9 +90,7 @@ def run_automatic_error_analysis(config):
             dataset_name_list, cand_pool_name_list, qrel_name_list, metric_names_list
         ):
             print("\n" + "-" * 30)
-            print(
-                f"Error Analyst: Analysis for query:{dataset_name} | split:{split} | from cand_pool:{cand_pool_name}"
-            )
+            print(f"Error Analyst: Analysis for query:{dataset_name} | split:{split} | from cand_pool:{cand_pool_name}")
 
             dataset_name = dataset_name.lower()
             cand_pool_name = cand_pool_name.lower()
@@ -115,9 +102,7 @@ def run_automatic_error_analysis(config):
 
             # Load the metric
             metric_list = [metric.strip() for metric in metric_names.split(",")]
-            metric_recall_list = [
-                metric for metric in metric_list if "recall" in metric.lower()
-            ]
+            metric_recall_list = [metric for metric in metric_list if "recall" in metric.lower()]
             k = max([int(metric.split("@")[1]) for metric in metric_recall_list])
 
             # Open a file to write the run results
@@ -167,10 +152,8 @@ def run_automatic_error_analysis(config):
             total_num_false_positives = 0
             for query_entry in query_data:
                 qid = query_entry["qid"]
-                query_modality, gt_candidate_modality = (
-                    get_mbeir_query_modality_cand_modality_from_task_id(
-                        int(qid_to_taskid[qid])
-                    )
+                query_modality, gt_candidate_modality = get_mbeir_query_modality_cand_modality_from_task_id(
+                    int(qid_to_taskid[qid])
                 )
                 assert (
                     query_modality == query_entry["query_modality"]
@@ -191,9 +174,7 @@ def run_automatic_error_analysis(config):
                             pass  # Correct
                         else:  # Error
                             num_false_positives += 1
-                            if (
-                                gt_candidate_modality != cand_modality
-                            ):  # Retrieve wrong modality
+                            if gt_candidate_modality != cand_modality:  # Retrieve wrong modality
                                 error_values_for_qid["Type1"] += 1
                             elif (
                                 MBEIR_DATASET_TO_DOMAIN[get_dataset_name(qid)]
@@ -206,9 +187,7 @@ def run_automatic_error_analysis(config):
                         break
                 total_num_false_positives += num_false_positives
                 for error_type in error_list:
-                    error_values_by_task[task_id][error_type].append(
-                        error_values_for_qid[error_type]
-                    )
+                    error_values_by_task[task_id][error_type].append(error_values_for_qid[error_type])
 
             print(
                 "Error Analyst: Total number of false positives: ",
@@ -225,9 +204,7 @@ def run_automatic_error_analysis(config):
                     "CandPool": cand_pool_name,
                 }
                 for error_type in error_list:
-                    mean_error = round(
-                        sum(errors[error_type]) / total_num_false_positives, 4
-                    )
+                    mean_error = round(sum(errors[error_type]) / total_num_false_positives, 4)
                     result[error_type] = mean_error
                     print(f"Error Analyst: Mean {error_type}: {mean_error}")
                 # assert result["Type1"] + result["Type2"] + result["Type3"] == 1.0, "Error values do not sum to 1.0"
@@ -259,12 +236,8 @@ def run_automatic_error_analysis(config):
         eval_results,
         key=lambda x: (
             x["TaskID"],
-            dataset_order.get(
-                x["Dataset"].lower(), 99
-            ),  # default to 99 for datasets not listed
-            split_order.get(
-                x["Split"].lower(), 99
-            ),  # default to 99 for splits not listed
+            dataset_order.get(x["Dataset"].lower(), 99),  # default to 99 for datasets not listed
+            split_order.get(x["Split"].lower(), 99),  # default to 99 for splits not listed
             cand_pool_order.get(x["CandPool"].lower(), 0),
         ),
     )
@@ -276,9 +249,7 @@ def run_automatic_error_analysis(config):
     for result in eval_results_sorted:
         key = (result["TaskID"], result["Task"], result["Dataset"], result["Split"])
         for metric in available_recall_metrics:
-            grouped_results[key][result["CandPool"]].update(
-                {metric: result.get(metric, None)}
-            )
+            grouped_results[key][result["CandPool"]].update({metric: result.get(metric, None)})
 
     # Write the sorted data to TSV
     if analysis_config.write_to_tsv:
@@ -305,9 +276,7 @@ def run_automatic_error_analysis(config):
             union_results = cand_pools.get("union", {})
             for metric in available_recall_metrics:
                 for cand_pool, metrics in cand_pools.items():
-                    if (
-                        cand_pool != "union"
-                    ):  # Exclude union pool as it's handled separately
+                    if cand_pool != "union":  # Exclude union pool as it's handled separately
                         row = [
                             task_id,
                             task,
@@ -324,9 +293,7 @@ def run_automatic_error_analysis(config):
                         if union_results:
                             row.extend(["union", union_results.get(metric, "N/A")])
                         else:
-                            row.extend(
-                                ["", ""]
-                            )  # Fill with empty values if no union result
+                            row.extend(["", ""])  # Fill with empty values if no union result
                         tsv_data.append(row)
 
         # Write to TSV
@@ -342,9 +309,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="FAISS Pipeline")
     parser.add_argument("--uniir_dir", type=str, default="/data/UniIR")
     parser.add_argument("--mbeir_data_dir", type=str, default="/data/UniIR/mbeir_data")
-    parser.add_argument(
-        "--config_path", default="config.yaml", help="Path to the config file."
-    )
+    parser.add_argument("--config_path", default="config.yaml", help="Path to the config file.")
     parser.add_argument(
         "--run_automatic_error_analysis",
         action="store_true",
