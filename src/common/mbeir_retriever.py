@@ -380,9 +380,7 @@ def run_retrieval(config):
 
             # Load raw candidates
             candidate_file_name = f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
-            candidates_path = os.path.join(
-                mbeir_data_dir, candidate_dir_name, candidate_file_name
-            )
+            candidates_path = os.path.join(mbeir_data_dir, candidate_dir_name, candidate_file_name)
             did_to_candidates = {}
             with open(candidates_path, "r") as f:
                 for l in f:
@@ -392,20 +390,14 @@ def run_retrieval(config):
 
             # Save raw retrieved results
             retrieved_file_name = f"{run_id}_retrieved.txt"
-            retrieved_file_path = os.path.join(
-                exp_retrieved_cands_dir, retrieved_file_name
-            )
+            retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
             with open(retrieved_file_path, "w") as run_file:
-                for idx, (distances, indices) in enumerate(
-                    zip(retrieved_cand_dist, retrieved_indices)
-                ):
+                for idx, (distances, indices) in enumerate(zip(retrieved_cand_dist, retrieved_indices)):
                     retrieved_cands = []
                     qid = unhash_qid(hashed_query_ids[idx])
                     query = qid_to_queries[qid]
                     task_id = qid_to_taskid[qid]
-                    for rank, (hashed_doc_id, score) in enumerate(
-                        zip(indices, distances), start=1
-                    ):
+                    for rank, (hashed_doc_id, score) in enumerate(zip(indices, distances), start=1):
                         doc_id = unhash_did(hashed_doc_id)
                         retrieved_cands.append(did_to_candidates[doc_id])
                     retrieved_dict = {"query": query, "candidates": retrieved_cands}
