@@ -273,7 +273,7 @@ def run_retrieval(config, query_embedder_config):
     exp_run_file_dir = os.path.join(exp_results_dir, "run_files")
     os.makedirs(exp_results_dir, exist_ok=True)
     exp_retrieved_cands_dir = os.path.join(exp_results_dir, "retrieved_candidates")
-    os.makedirs(exp_run_file_dir, exist_ok=True)
+    os.makedirs(exp_retrieved_cands_dir, exist_ok=True)
     exp_tsv_results_dir = os.path.join(exp_results_dir, "final_tsv")
     os.makedirs(exp_tsv_results_dir, exist_ok=True)
 
