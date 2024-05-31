@@ -242,7 +242,11 @@ def get_complement_candidates(
     config: OmegaConf,
 ):
     complement_modalities = {"text": "image", "image": "text"}
-    queries = [(cand["modality"], cand["txt"], cand["img_path"]) for cand in candidates]
+    queries = [
+        (cand["modality"], cand["txt"], cand["img_path"])
+        for cand in candidates
+        if cand["mmodality"] in complement_modalities.keys()
+    ]
     retriever = InteractiveRetriever(cand_index_path, candidates_path, config)
     results = retriever.retrieve(queries, k=10)
     complement_candidates = []
@@ -429,13 +433,11 @@ def run_retrieval(config, query_embedder_config):
                         retrieved_cands.append(did_to_candidates[doc_id])
                     retrieved_dict = {"query": query, "candidates": retrieved_cands}
                     if retrieval_config.retrieve_image_text_pairs:
-                        retrieved_dict["complement_candidates"] = (
-                            get_complement_candidates(
-                                cand_index_path,
-                                candidates_path,
-                                retrieved_cands,
-                                query_embedder_config,
-                            )
+                        retrieved_dict["complement_candidates"] = get_complement_candidates(
+                            cand_index_path,
+                            candidates_path,
+                            retrieved_cands,
+                            query_embedder_config,
                         )
                     json.dump(
                         retrieved_dict,
@@ -685,17 +687,13 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="FAISS Pipeline")
     parser.add_argument("--uniir_dir", type=str, default="/data/UniIR")
     parser.add_argument("--mbeir_data_dir", type=str, default="/data/UniIR/mbeir_data")
-    parser.add_argument(
-        "--config_path", default="config.yaml", help="Path to the config file."
-    )
+    parser.add_argument("--config_path", default="config.yaml", help="Path to the config file.")
     parser.add_argument(
         "--query_embedder_config_path",
         default="",
         help="Path to the query embedder config file. Used when retrieving candidates with complement modalities in raw_retrieval mode.",
     )
-    parser.add_argument(
-        "--enable_create_index", action="store_true", help="Enable create index"
-    )
+    parser.add_argument("--enable_create_index", action="store_true", help="Enable create index")
     parser.add_argument(
         "--enable_hard_negative_mining",
         action="store_true",
