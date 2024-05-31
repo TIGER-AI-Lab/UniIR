@@ -245,7 +245,7 @@ def get_complement_candidates(
     queries = [
         (cand["modality"], cand["txt"], cand["img_path"])
         for cand in candidates
-        if cand["mmodality"] in complement_modalities.keys()
+        if cand["modality"] in complement_modalities.keys()
     ]
     retriever = InteractiveRetriever(cand_index_path, candidates_path, config)
     results = retriever.retrieve(queries, k=10)
