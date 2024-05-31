@@ -16,6 +16,9 @@ import gc
 
 import faiss
 import pickle
+import torch
+
+import dist_utils
 
 from data.preprocessing.utils import (
     load_jsonl_as_list,
@@ -710,10 +713,16 @@ def main():
 
     print(OmegaConf.to_yaml(config, sort_keys=False))
 
-    if args.query_embedder_config_path:
+    interactive_retrieval = True if args.query_embedder_config_path else False
+    if interactive_retrieval:
         query_embedder_config = OmegaConf.load(args.query_embedder_config_path)
         query_embedder_config.uniir_dir = args.uniir_dir
         query_embedder_config.mbeir_data_dir = args.mbeir_data_dir
+        # Initialize distributed mode
+        args.dist_url = query_embedder_config.dist_config.dist_url  # Note: The use of args is a historical artifact :(
+        dist_utils.init_distributed_mode(args)
+        query_embedder_config.dist_config.gpu_id = args.gpu
+        query_embedder_config.dist_config.distributed_mode = args.distributed
 
     if args.enable_hard_negative_mining:
         run_hard_negative_mining(config)
@@ -723,6 +732,10 @@ def main():
 
     if args.enable_retrieval:
         run_retrieval(config, query_embedder_config)
+
+    # Destroy the process group
+    if interactive_retrieval and query_embedder_config.dist_config.distributed_mode:
+        torch.distributed.destroy_process_group()
 
 
 if __name__ == "__main__":
