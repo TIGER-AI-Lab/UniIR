@@ -712,8 +712,8 @@ def main():
 
     if args.query_embedder_config_path:
         query_embedder_config = OmegaConf.load(args.query_embedder_config_path)
-        config.uniir_dir = args.uniir_dir
-        config.mbeir_data_dir = args.mbeir_data_dir
+        query_embedder_config.uniir_dir = args.uniir_dir
+        query_embedder_config.mbeir_data_dir = args.mbeir_data_dir
 
     if args.enable_hard_negative_mining:
         run_hard_negative_mining(config)
