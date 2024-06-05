@@ -255,6 +255,7 @@ def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indice
             doc_id = unhash_did(hashed_doc_id)
             retrieved_cands.append(did_to_candidates[doc_id])
         retrieved_dict[qid] = {"query": query, "candidates": retrieved_cands}
+    # TODO: retrieve the complement candidates when retrieve_image_text_pairs is enabled.
     return retrieved_dict
 
 
@@ -411,7 +412,7 @@ def run_retrieval(config, query_embedder_config):
                     for _, v in retrieved_dict.items():
                         json.dump(v, retrieved_file)
                         retrieved_file.write("\n")
-                print(f"Retriever: Run file saved to {retrieved_file_path}")
+                print(f"Retriever: Retrieved file saved to {retrieved_file_path}")
 
             # Compute Recall@k
             recall_values_by_task = defaultdict(lambda: defaultdict(list))
