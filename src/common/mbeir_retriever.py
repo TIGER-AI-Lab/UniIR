@@ -229,9 +229,7 @@ def search_index_with_batch(query_embeddings_batch, index_gpu, num_cand_to_retri
     return distances, indices
 
 
-def get_raw_retrieved_candidates(
-    queries_path, candidates_path, retrieved_indices, hashed_query_ids, complement_retriever
-):
+def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indices, hashed_query_ids):
     # Load raw queries
     qid_to_queries = {}
     with open(queries_path, "r") as f:
@@ -249,7 +247,6 @@ def get_raw_retrieved_candidates(
             did_to_candidates[c["did"]] = c
 
     retrieved_dict = {}
-    complement_queries_list = []  # Used to map complement queries to original qids.
     for idx, indices in enumerate(retrieved_indices):
         retrieved_cands = []
         qid = unhash_qid(hashed_query_ids[idx])
@@ -258,50 +255,11 @@ def get_raw_retrieved_candidates(
             doc_id = unhash_did(hashed_doc_id)
             retrieved_cands.append(did_to_candidates[doc_id])
         retrieved_dict[qid] = {"query": query, "candidates": retrieved_cands}
-        # For each candidate with image/text modality create a complement query to retrieve the candidate's complement candidate with text/image modality.
-        if complement_retriever:
-            complement_modalities = {"text": "image", "image": "text"}
-            complement_queries = [
-                (cand.get("modality"), cand.get("txt"), cand.get("img_path"))
-                for cand in retrieved_cands
-                if cand["modality"] in complement_modalities.keys()
-            ]
-            complement_queries_list.append((qid, complement_queries))
-            complement_retriever.add_queries(complement_queries)
-
-    # Retrieve complement candidates for all queries at once.
-    if complement_retriever:
-        retrieved_complements = complement_retriever.retrieve(k=10)
-        complement_queries_start_index = 0
-        for qid, complement_queries in complement_queries_list:
-            complement_candidates = []
-            complement_queries_end_index = complement_queries_start_index + len(complement_queries)
-            retrieved_comp_cands = retrieved_complements[complement_queries_start_index:complement_queries_end_index]
-            complement_queries_start_index = complement_queries_end_index
-            for idx, complement_query in enumerate(complement_queries):
-                complement_cand = None
-                q_modality = complement_query[0]
-                for cand in retrieved_comp_cands[idx]:
-                    if cand["modality"] == complement_modalities[q_modality]:
-                        # The retrieved complement candidate should not be the same as the original query.
-                        if (
-                            cand.get("img_path")
-                            and cand.get("img_path") != retrieved_dict[qid]["query"]["query_img_path"]
-                        ):
-                            complement_cand = cand
-                            break
-                        if cand.get("txt") and cand.get("txt") != retrieved_dict[qid]["query"]["query_txt"]:
-                            complement_cand = cand
-                            break
-                if not complement_cand:
-                    print(f"retrieved_dict[qid]: {retrieved_dict[qid].__repr__()}")
-                    print(f"retrieved_comp_cands: {retrieved_comp_cands[idx]}")
-                complement_candidates.append(complement_cand)
-            retrieved_dict[qid]["complement_candidates"] = complement_candidates
+    # TODO: retrieve the complement candidates when retrieve_image_text_pairs is enabled.
     return retrieved_dict
 
 
-def run_retrieval(config, query_embedder_config):
+def run_retrieval(config, query_embedder_config=None):
     """This script runs retrieval on the faiss index"""
     uniir_dir = config.uniir_dir
     mbeir_data_dir = config.mbeir_data_dir
@@ -445,13 +403,8 @@ def run_retrieval(config, query_embedder_config):
                 candidates_path = os.path.join(
                     mbeir_data_dir, candidate_dir_name, f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
                 )
-                complement_retriever = (
-                    InteractiveRetriever(cand_index_path, candidates_path, query_embedder_config)
-                    if retrieval_config.retrieve_image_text_pairs
-                    else None
-                )
                 retrieved_dict = get_raw_retrieved_candidates(
-                    queries_path, candidates_path, retrieved_indices, hashed_query_ids, complement_retriever
+                    queries_path, candidates_path, retrieved_indices, hashed_query_ids
                 )
                 retrieved_file_name = f"{run_id}_retrieved.jsonl"
                 retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
@@ -459,7 +412,7 @@ def run_retrieval(config, query_embedder_config):
                     for _, v in retrieved_dict.items():
                         json.dump(v, retrieved_file)
                         retrieved_file.write("\n")
-                print(f"Retriever: Run file saved to {retrieved_file_path}")
+                print(f"Retriever: Retrieved file saved to {retrieved_file_path}")
 
             # Compute Recall@k
             recall_values_by_task = defaultdict(lambda: defaultdict(list))
