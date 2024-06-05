@@ -229,7 +229,36 @@ def search_index_with_batch(query_embeddings_batch, index_gpu, num_cand_to_retri
     return distances, indices
 
 
-def run_retrieval(config):
+def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indices, hashed_query_ids):
+    # Load raw queries
+    qid_to_queries = {}
+    with open(queries_path, "r") as f:
+        for l in f:
+            q = json.loads(l.strip())
+            assert q["qid"] not in qid_to_queries, "qids must be unique"
+            qid_to_queries[q["qid"]] = q
+
+    # Load raw candidates
+    did_to_candidates = {}
+    with open(candidates_path, "r") as f:
+        for l in f:
+            c = json.loads(l.strip())
+            assert c["did"] not in did_to_candidates, "dids must be unique"
+            did_to_candidates[c["did"]] = c
+
+    retrieved_dict = {}
+    for idx, indices in enumerate(retrieved_indices):
+        retrieved_cands = []
+        qid = unhash_qid(hashed_query_ids[idx])
+        query = qid_to_queries[qid]
+        for hashed_doc_id in indices:
+            doc_id = unhash_did(hashed_doc_id)
+            retrieved_cands.append(did_to_candidates[doc_id])
+        retrieved_dict[qid] = {"query": query, "candidates": retrieved_cands}
+    return retrieved_dict
+
+
+def run_retrieval(config, query_embedder_config):
     """This script runs retrieval on the faiss index"""
     uniir_dir = config.uniir_dir
     mbeir_data_dir = config.mbeir_data_dir
@@ -246,7 +275,7 @@ def run_retrieval(config):
     exp_results_dir = os.path.join(uniir_dir, results_dir_name, expt_dir_name)
     os.makedirs(exp_results_dir, exist_ok=True)
     exp_run_file_dir = os.path.join(exp_results_dir, "run_files")
-    os.makedirs(exp_results_dir, exist_ok=True)
+    os.makedirs(exp_run_file_dir, exist_ok=True)
     exp_retrieved_cands_dir = os.path.join(exp_results_dir, "retrieved_candidates")
     os.makedirs(exp_retrieved_cands_dir, exist_ok=True)
     exp_tsv_results_dir = os.path.join(exp_results_dir, "final_tsv")
@@ -363,57 +392,26 @@ def run_retrieval(config):
                         run_file.write(run_file_line)
             print(f"Retriever: Run file saved to {run_file_path}")
 
-        # Save raw retrieve candidates for downstream applications like UniRAG
-        if retrieval_config.raw_retrieval:
-            # Load raw queries
-            queries_path = os.path.join(
-                mbeir_data_dir,
-                query_dir_name,
-                f"{split}/mbeir_{dataset_name}_{split}.jsonl",
-            )
-            qid_to_queries = {}
-            with open(queries_path, "r") as f:
-                for l in f:
-                    q = json.loads(l.strip())
-                    assert q["qid"] not in qid_to_queries, "qids must be unique"
-                    qid_to_queries[q["qid"]] = q
-
-            # Load raw candidates
-            candidate_file_name = f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
-            candidates_path = os.path.join(mbeir_data_dir, candidate_dir_name, candidate_file_name)
-            did_to_candidates = {}
-            with open(candidates_path, "r") as f:
-                for l in f:
-                    c = json.loads(l.strip())
-                    assert c["did"] not in did_to_candidates, "dids must be unique"
-                    did_to_candidates[c["did"]] = c
-
-            # Save raw retrieved results
-            retrieved_file_name = f"{run_id}_retrieved.txt"
-            retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
-            with open(retrieved_file_path, "w") as run_file:
-                for idx, (distances, indices) in enumerate(zip(retrieved_cand_dist, retrieved_indices)):
-                    retrieved_cands = []
-                    qid = unhash_qid(hashed_query_ids[idx])
-                    query = qid_to_queries[qid]
-                    task_id = qid_to_taskid[qid]
-                    for rank, (hashed_doc_id, score) in enumerate(zip(indices, distances), start=1):
-                        doc_id = unhash_did(hashed_doc_id)
-                        retrieved_cands.append(did_to_candidates[doc_id])
-                    retrieved_dict = {"query": query, "candidates": retrieved_cands}
-                    if retrieval_config.retrieve_image_text_pairs:
-                        # TODO(sahel): Populate the complement candidates by retrieving the top 1 candidate
-                        # for each retrieved candidate. The complement candidate will have the complementary
-                        # modality (i.e. image for text candidates, and text for image candidates).
-                        complement_candidates = []
-                        retrieved_dict["complement_candidates"] = complement_candidates
-                    json.dump(
-                        retrieved_dict,
-                        retrieved_file_path,
-                    )
-                    retrieved_file_path.write("\n")
-
-            print(f"Retriever: Run file saved to {retrieved_file_path}")
+            # Store raw retrieved candidates for downstream applications like UniRAG
+            if retrieval_config.raw_retrieval:
+                queries_path = os.path.join(
+                    mbeir_data_dir,
+                    query_dir_name,
+                    f"{split}/mbeir_{dataset_name}_{split}.jsonl",
+                )
+                candidates_path = os.path.join(
+                    mbeir_data_dir, candidate_dir_name, f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
+                )
+                retrieved_dict = get_raw_retrieved_candidates(
+                    queries_path, candidates_path, retrieved_indices, hashed_query_ids
+                )
+                retrieved_file_name = f"{run_id}_retrieved.jsonl"
+                retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
+                with open(retrieved_file_path, "w") as retrieved_file:
+                    for _, v in retrieved_dict.items():
+                        json.dump(v, retrieved_file)
+                        retrieved_file.write("\n")
+                print(f"Retriever: Run file saved to {retrieved_file_path}")
 
             # Compute Recall@k
             recall_values_by_task = defaultdict(lambda: defaultdict(list))
