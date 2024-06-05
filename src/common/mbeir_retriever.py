@@ -259,7 +259,7 @@ def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indice
     return retrieved_dict
 
 
-def run_retrieval(config, query_embedder_config):
+def run_retrieval(config, query_embedder_config=None):
     """This script runs retrieval on the faiss index"""
     uniir_dir = config.uniir_dir
     mbeir_data_dir = config.mbeir_data_dir
