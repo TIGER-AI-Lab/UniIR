@@ -532,22 +532,31 @@ class MBEIRInferenceOnlyCollator(MBEIRCollatorBase):
 
     def __call__(self, batch):
         txt_list, txt_mask_list, img_list, img_mask_list = [], [], [], []
-        # Candidate can be indexed directly from the batch
+        qid_list, task_id_list = [], []
         for instance in batch:
-            txt = instance["txt"]
-            img = instance["img"]
+            query = instance["query"]
+            txt = query["txt"]
+            img = query["img"]
             padded_txt, txt_mask = self._get_padded_text_with_mask(txt)
             padded_img, img_mask = self._get_padded_image_with_mask(img)
             txt_list.append(padded_txt)
             img_list.append(padded_img)
             txt_mask_list.append(txt_mask)
             img_mask_list.append(img_mask)
+            qid = instance.pop("qid", None)
+            if qid is not None:
+                qid_list.append(qid)
+            task_id = instance.pop("task_id", None)
+            if task_id is not None:
+                task_id_list.append(task_id)
 
         processed_batch = {
             "txt_batched": self.tokenizer(txt_list),
             "image_batched": torch.stack(img_list, dim=0),
             "txt_mask_batched": torch.tensor(txt_mask_list, dtype=torch.long),
             "image_mask_batched": torch.tensor(img_mask_list, dtype=torch.long),
+            "qid_list": qid_list,
+            "task_id_list": task_id_list,
         }
 
         if hasattr(processed_batch["txt_batched"], "input_ids"):
