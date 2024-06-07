@@ -8,7 +8,6 @@ from omegaconf import OmegaConf
 from collections import defaultdict
 from datetime import datetime
 import json
-from typing import Any
 
 import numpy as np
 import csv
@@ -16,9 +15,6 @@ import gc
 
 import faiss
 import pickle
-import torch
-
-import dist_utils
 
 from data.preprocessing.utils import (
     load_jsonl_as_list,
@@ -30,8 +26,6 @@ from data.preprocessing.utils import (
     unhash_qid,
     get_mbeir_task_name,
 )
-
-from interactive_retriever import InteractiveRetriever
 
 
 def create_index(config):
@@ -235,36 +229,9 @@ def search_index_with_batch(query_embeddings_batch, index_gpu, num_cand_to_retri
     return distances, indices
 
 
-<<<<<<< HEAD
-def get_complement_candidates(
-    cand_index_path: str,
-    candidates_path: str,
-    candidates: list[dict[str, Any]],
-    config: OmegaConf,
+def get_raw_retrieved_candidates(
+    queries_path, candidates_path, retrieved_indices, hashed_query_ids, complement_retriever
 ):
-    complement_modalities = {"text": "image", "image": "text"}
-    queries = [
-        (cand["modality"], cand["txt"], cand["img_path"])
-        for cand in candidates
-        if cand["modality"] in complement_modalities.keys()
-    ]
-    retriever = InteractiveRetriever(cand_index_path, candidates_path, config)
-    results = retriever.retrieve(queries, k=10)
-    complement_candidates = []
-    for idx, result in enumerate(results):
-        q_modality = queries[idx][0]
-        for cand in result:
-            # Get the first retrieved candidate with a modality that complements the original candidate's modality.
-            if cand["modality"] == complement_modalities[q_modality]:
-                complement_candidates.append(cand)
-                break
-    assert len(candidates) == len(queries) == len(complement_candidates)
-    return complement_candidates
-
-
-def run_retrieval(config, query_embedder_config):
-=======
-def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indices, hashed_query_ids):
     # Load raw queries
     qid_to_queries = {}
     with open(queries_path, "r") as f:
@@ -282,6 +249,7 @@ def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indice
             did_to_candidates[c["did"]] = c
 
     retrieved_dict = {}
+    complement_queries_list = []  # Used to map complement queries to original qids.
     for idx, indices in enumerate(retrieved_indices):
         retrieved_cands = []
         qid = unhash_qid(hashed_query_ids[idx])
@@ -290,12 +258,50 @@ def get_raw_retrieved_candidates(queries_path, candidates_path, retrieved_indice
             doc_id = unhash_did(hashed_doc_id)
             retrieved_cands.append(did_to_candidates[doc_id])
         retrieved_dict[qid] = {"query": query, "candidates": retrieved_cands}
-    # TODO: retrieve the complement candidates when retrieve_image_text_pairs is enabled.
+        # For each candidate with image/text modality create a complement query to retrieve the candidate's complement candidate with text/image modality.
+        if complement_retriever:
+            complement_modalities = {"text": "image", "image": "text"}
+            complement_queries = [
+                (cand.get("modality"), cand.get("txt"), cand.get("img_path"))
+                for cand in retrieved_cands
+                if cand["modality"] in complement_modalities.keys()
+            ]
+            complement_queries_list.append((qid, complement_queries))
+            complement_retriever.add_queries(complement_queries)
+
+    # Retrieve complement candidates for all queries at once.
+    if complement_retriever:
+        retrieved_complements = complement_retriever.retrieve(k=10)
+        complement_queries_start_index = 0
+        for qid, complement_queries in complement_queries_list:
+            complement_candidates = []
+            complement_queries_end_index = complement_queries_start_index + len(complement_queries)
+            retrieved_comp_cands = retrieved_complements[complement_queries_start_index:complement_queries_end_index]
+            complement_queries_start_index = complement_queries_end_index
+            for idx, complement_query in enumerate(complement_queries):
+                complement_cand = None
+                q_modality = complement_query[0]
+                for cand in retrieved_comp_cands[idx]:
+                    if cand["modality"] == complement_modalities[q_modality]:
+                        # The retrieved complement candidate should not be the same as the original query.
+                        if (
+                            cand.get("img_path")
+                            and cand.get("img_path") != retrieved_dict[qid]["query"]["query_img_path"]
+                        ):
+                            complement_cand = cand
+                            break
+                        if cand.get("txt") and cand.get("txt") != retrieved_dict[qid]["query"]["query_txt"]:
+                            complement_cand = cand
+                            break
+                if not complement_cand:
+                    print(f"retrieved_dict[qid]: {retrieved_dict[qid].__repr__()}")
+                    print(f"retrieved_comp_cands: {retrieved_comp_cands[idx]}")
+                complement_candidates.append(complement_cand)
+            retrieved_dict[qid]["complement_candidates"] = complement_candidates
     return retrieved_dict
 
 
 def run_retrieval(config, query_embedder_config=None):
->>>>>>> interactive_retrieval
     """This script runs retrieval on the faiss index"""
     uniir_dir = config.uniir_dir
     mbeir_data_dir = config.mbeir_data_dir
@@ -429,59 +435,6 @@ def run_retrieval(config, query_embedder_config=None):
                         run_file.write(run_file_line)
             print(f"Retriever: Run file saved to {run_file_path}")
 
-<<<<<<< HEAD
-        # Save raw retrieve candidates for downstream applications like UniRAG
-        if retrieval_config.raw_retrieval:
-            # Load raw queries
-            queries_path = os.path.join(
-                mbeir_data_dir,
-                query_dir_name,
-                f"{split}/mbeir_{dataset_name}_{split}.jsonl",
-            )
-            qid_to_queries = {}
-            with open(queries_path, "r") as f:
-                for l in f:
-                    q = json.loads(l.strip())
-                    assert q["qid"] not in qid_to_queries, "qids must be unique"
-                    qid_to_queries[q["qid"]] = q
-
-            # Load raw candidates
-            candidate_file_name = f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
-            candidates_path = os.path.join(mbeir_data_dir, candidate_dir_name, candidate_file_name)
-            did_to_candidates = {}
-            with open(candidates_path, "r") as f:
-                for l in f:
-                    c = json.loads(l.strip())
-                    assert c["did"] not in did_to_candidates, "dids must be unique"
-                    did_to_candidates[c["did"]] = c
-
-            # Save raw retrieved results
-            retrieved_file_name = f"{run_id}_retrieved.txt"
-            retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
-            with open(retrieved_file_path, "w") as run_file:
-                for idx, indices in enumerate(retrieved_indices):
-                    retrieved_cands = []
-                    qid = unhash_qid(hashed_query_ids[idx])
-                    query = qid_to_queries[qid]
-                    for hashed_doc_id in indices:
-                        doc_id = unhash_did(hashed_doc_id)
-                        retrieved_cands.append(did_to_candidates[doc_id])
-                    retrieved_dict = {"query": query, "candidates": retrieved_cands}
-                    if retrieval_config.retrieve_image_text_pairs:
-                        retrieved_dict["complement_candidates"] = get_complement_candidates(
-                            cand_index_path,
-                            candidates_path,
-                            retrieved_cands,
-                            query_embedder_config,
-                        )
-                    json.dump(
-                        retrieved_dict,
-                        retrieved_file_path,
-                    )
-                    retrieved_file_path.write("\n")
-
-            print(f"Retriever: Run file saved to {retrieved_file_path}")
-=======
             # Store raw retrieved candidates for downstream applications like UniRAG
             if retrieval_config.raw_retrieval:
                 queries_path = os.path.join(
@@ -492,8 +445,13 @@ def run_retrieval(config, query_embedder_config=None):
                 candidates_path = os.path.join(
                     mbeir_data_dir, candidate_dir_name, f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
                 )
+                complement_retriever = (
+                    InteractiveRetriever(cand_index_path, candidates_path, query_embedder_config)
+                    if retrieval_config.retrieve_image_text_pairs
+                    else None
+                )
                 retrieved_dict = get_raw_retrieved_candidates(
-                    queries_path, candidates_path, retrieved_indices, hashed_query_ids
+                    queries_path, candidates_path, retrieved_indices, hashed_query_ids, complement_retriever
                 )
                 retrieved_file_name = f"{run_id}_retrieved.jsonl"
                 retrieved_file_path = os.path.join(exp_retrieved_cands_dir, retrieved_file_name)
@@ -502,7 +460,6 @@ def run_retrieval(config, query_embedder_config=None):
                         json.dump(v, retrieved_file)
                         retrieved_file.write("\n")
                 print(f"Retriever: Retrieved file saved to {retrieved_file_path}")
->>>>>>> interactive_retrieval
 
             # Compute Recall@k
             recall_values_by_task = defaultdict(lambda: defaultdict(list))
@@ -745,11 +702,6 @@ def parse_arguments():
     parser.add_argument("--uniir_dir", type=str, default="/data/UniIR")
     parser.add_argument("--mbeir_data_dir", type=str, default="/data/UniIR/mbeir_data")
     parser.add_argument("--config_path", default="config.yaml", help="Path to the config file.")
-    parser.add_argument(
-        "--query_embedder_config_path",
-        default="",
-        help="Path to the query embedder config file. Used when retrieving candidates with complement modalities in raw_retrieval mode.",
-    )
     parser.add_argument("--enable_create_index", action="store_true", help="Enable create index")
     parser.add_argument(
         "--enable_hard_negative_mining",
@@ -768,17 +720,6 @@ def main():
 
     print(OmegaConf.to_yaml(config, sort_keys=False))
 
-    interactive_retrieval = True if args.query_embedder_config_path else False
-    if interactive_retrieval:
-        query_embedder_config = OmegaConf.load(args.query_embedder_config_path)
-        query_embedder_config.uniir_dir = args.uniir_dir
-        query_embedder_config.mbeir_data_dir = args.mbeir_data_dir
-        # Initialize distributed mode
-        args.dist_url = query_embedder_config.dist_config.dist_url  # Note: The use of args is a historical artifact :(
-        dist_utils.init_distributed_mode(args)
-        query_embedder_config.dist_config.gpu_id = args.gpu
-        query_embedder_config.dist_config.distributed_mode = args.distributed
-
     if args.enable_hard_negative_mining:
         run_hard_negative_mining(config)
 
@@ -786,11 +727,7 @@ def main():
         create_index(config)
 
     if args.enable_retrieval:
-        run_retrieval(config, query_embedder_config)
-
-    # Destroy the process group
-    if interactive_retrieval and query_embedder_config.dist_config.distributed_mode:
-        torch.distributed.destroy_process_group()
+        run_retrieval(config)
 
 
 if __name__ == "__main__":
