@@ -11,3 +11,17 @@ dependencies:
   - pip
   - pip:
     - omegaconf
+    - python-dotenv
+    - pycocoevalcap
+    - numpy
+    - wandb
+    - ftfy
+    - tqdm
+    - regex
+    - typeguard
+    - datasets
+    - transformers
+    - git+https://github.com/openai/CLIP.git
+    - timm
+    - fairscale
+    - opencv-python

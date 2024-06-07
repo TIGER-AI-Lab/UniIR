@@ -72,7 +72,7 @@ class InteractiveRetriever:
                 assert c["did"] not in self.did_to_candidates, "dids must be unique"
                 self.did_to_candidates[c["did"]] = c
 
-    def _add_queries(self, queries: list[tuple[str, str, str]]):
+    def add_queries(self, queries: list[tuple[str, str, str]]):
         for query_modality, query_txt, query_img_path in queries:
             if query_modality == QueryModality.TEXT.value:
                 task_id = 0
@@ -89,7 +89,7 @@ class InteractiveRetriever:
             self.queries.append(
                 {
                     # Hardcoded qid in format of dataset_id:query_num.
-                    "qid": ":".join([self.dataset_id, str(len(self.queries) + 1)]),
+                    "qid": ":".join([str(self.dataset_id), str(len(self.queries) + 1)]),
                     "query_modality": query_modality,
                     "query_txt": query_txt,
                     "query_img_path": query_img_path,
@@ -109,7 +109,7 @@ class InteractiveRetriever:
 
         print_config = False
         if dist_utils.is_main_process():
-            print(f"\nEmbedder Log: Generating embeddings for {self.query.__repr__()}.")
+            print(f"\nEmbedder Log: Generating embeddings for {len(self.queries)} queries.")
             print_config = True
 
         dataset = MBEIRInferenceOnlyDataset(
@@ -118,7 +118,6 @@ class InteractiveRetriever:
             query_instruct_path,
             self.img_preprocess_fn,
             enable_query_instruct=data_config.enable_query_instruct,
-            shuffle_cand=data_config.shuffle_cand,
             print_config=print_config,
         )
         collator = MBEIRInferenceOnlyCollator(
@@ -152,7 +151,7 @@ class InteractiveRetriever:
             dist.barrier()  # Wait for rank 0 to finish saving the embeddings and ids.
         if dist_utils.is_main_process():
             print(f"Embedder Log: Data loader is set up.")
-            print(f"Embedder Log: Generating embeddings for {self.query} ...")
+            print(f"Embedder Log: Generating embeddings for {len(self.queries)} queries ...")
             print(f"Inference with half precision: {embed_config.use_fp16}")
 
         # Generate embeddings and ids
@@ -162,7 +161,6 @@ class InteractiveRetriever:
             device=self.config.dist_config.gpu_id,
             use_fp16=embed_config.use_fp16,
         )
-        self.id_list = id_list
 
         # Save the embeddings to a temprary .npy
         if not dist.is_initialized() or dist.get_rank() == 0:
@@ -189,9 +187,8 @@ class InteractiveRetriever:
         gc.collect()
         torch.cuda.empty_cache()
 
-    def retrieve(self, queries: list[tuple[str, str, str]], k: int = 1):
+    def retrieve(self, k: int = 1, batch_size: int = 100):
         results = []
-        self._add_queries(queries)
         self._embed_queries()
         # retrieve skipping the eval
         from mbeir_retriever import search_index
@@ -200,9 +197,9 @@ class InteractiveRetriever:
         _, retrieved_indices = search_index(
             self.embed_file,
             self.cand_index_path,
-            batch_size=self.id_list.shape[0],
+            batch_size=batch_size,
             num_cand_to_retrieve=k,
-        )  # Shape: (number_of_queries, k)
+        )
 
         for indices in retrieved_indices:
             retrieved_cands = []
