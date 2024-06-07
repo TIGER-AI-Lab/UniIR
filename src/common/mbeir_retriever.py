@@ -15,6 +15,7 @@ import gc
 
 import faiss
 import pickle
+import torch
 
 from data.preprocessing.utils import (
     load_jsonl_as_list,
@@ -26,6 +27,8 @@ from data.preprocessing.utils import (
     unhash_qid,
     get_mbeir_task_name,
 )
+import dist_utils
+from interactive_retriever import InteractiveRetriever
 
 
 def create_index(config):
@@ -702,6 +705,11 @@ def parse_arguments():
     parser.add_argument("--uniir_dir", type=str, default="/data/UniIR")
     parser.add_argument("--mbeir_data_dir", type=str, default="/data/UniIR/mbeir_data")
     parser.add_argument("--config_path", default="config.yaml", help="Path to the config file.")
+    parser.add_argument(
+        "--query_embedder_config_path",
+        default="",
+        help="Path to the query embedder config file. Used when retrieving candidates with complement modalities in raw_retrieval mode.",
+    )
     parser.add_argument("--enable_create_index", action="store_true", help="Enable create index")
     parser.add_argument(
         "--enable_hard_negative_mining",
@@ -720,6 +728,17 @@ def main():
 
     print(OmegaConf.to_yaml(config, sort_keys=False))
 
+    interactive_retrieval = True if args.query_embedder_config_path else False
+    if interactive_retrieval:
+        query_embedder_config = OmegaConf.load(args.query_embedder_config_path)
+        query_embedder_config.uniir_dir = args.uniir_dir
+        query_embedder_config.mbeir_data_dir = args.mbeir_data_dir
+        # Initialize distributed mode
+        args.dist_url = query_embedder_config.dist_config.dist_url  # Note: The use of args is a historical artifact :(
+        dist_utils.init_distributed_mode(args)
+        query_embedder_config.dist_config.gpu_id = args.gpu
+        query_embedder_config.dist_config.distributed_mode = args.distributed
+
     if args.enable_hard_negative_mining:
         run_hard_negative_mining(config)
 
@@ -727,7 +746,11 @@ def main():
         create_index(config)
 
     if args.enable_retrieval:
-        run_retrieval(config)
+        run_retrieval(config, query_embedder_config)
+
+    # Destroy the process group
+    if interactive_retrieval and query_embedder_config.dist_config.distributed_mode:
+        torch.distributed.destroy_process_group()
 
 
 if __name__ == "__main__":
