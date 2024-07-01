@@ -2,7 +2,7 @@
 
 [**🌐 Homepage**](https://tiger-ai-lab.github.io/UniIR/) | [**🤗 Dataset(M-BEIR Benchmark)**](https://huggingface.co/datasets/TIGER-Lab/M-BEIR) | [**🤗 Checkpoints(UniIR models)**](https://huggingface.co/TIGER-Lab/UniIR) | [**📖 arXiv**](https://arxiv.org/pdf/2311.17136.pdf) | [**GitHub**](https://github.com/TIGER-AI-Lab/UniIR)
 
-This repo contains the codebase for the paper "[UniIR: Training and Benchmarking Universal Multimodal
+This repo contains the codebase for the ECCV-2024 paper "[UniIR: Training and Benchmarking Universal Multimodal
 Information Retrievers](https://arxiv.org/pdf/2311.17136.pdf)"
 
 ## 🔔News
