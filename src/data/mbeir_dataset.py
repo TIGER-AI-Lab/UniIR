@@ -8,7 +8,6 @@ from enum import Enum
 from typing import Callable, List, Union, Any
 
 # Third-party
-import numpy as np
 import torch
 from PIL import Image
 
@@ -280,6 +279,81 @@ class MBEIRMainDataset(MBEIRDatasetBase):
         return instance
 
 
+class MBEIRInferenceOnlyDataset(MBEIRDatasetBase):
+    def __init__(
+        self,
+        mbeir_data_dir,  # Root directory of the MBEIR dataset
+        queries,  # Relate path to the query data
+        query_instruct_path,  # Relate path to the query instructions
+        img_preprocess_fn,
+        enable_query_instruct=True,  # Whether to enable instructions
+        returns=None,  # Catch any return-related settings
+        print_config=True,  # Whether to print the dataset config
+    ):
+        super().__init__(mbeir_data_dir, img_preprocess_fn)
+
+        self.query_data = queries
+        self._load_query_instructions(query_instruct_path)
+        self.enable_query_instruct = enable_query_instruct
+
+        returns = {} if returns is None else returns
+        self.returns = {
+            "hashed_qid": True,  # default value
+            "task_id": False,  # default value
+            "hashed_p_did": False,  # default value
+            **returns,  # Overwrite defaults with any values provided in returns
+        }
+        if print_config:
+            self.query_instruct_path = query_instruct_path
+            self._print_config()
+
+    def _print_config(self):
+        # Print dataset config
+        print(f"\n---Mbeir Dataset Config---")
+        print(f"Enable Query Instructions: {self.enable_query_instruct}")
+        if self.enable_query_instruct:
+            print(f"Query Instructions Path: {self.query_instruct_path}")
+        print(f"Returns: {self.returns}")
+        print(f"--------------------------\n")
+
+    def __len__(self):
+        return len(self.query_data)
+
+    def __getitem__(self, index):
+        """Retrieve an item from the dataset by index."""
+        mbeir_entry = self.query_data[index]
+
+        query_txt = mbeir_entry.get("query_txt") or ""
+        query_img_path = mbeir_entry.get("query_img_path", None)
+        query_modality = mbeir_entry.get("query_modality", None)
+        candidate_modality = mbeir_entry.get("candidate_modality", None)
+        qid = mbeir_entry.get("qid", None)
+        query_dataset_id = qid.split(":")[0] if qid else None
+
+        # Randomly sample a query prompt
+        # Note:query_modality and cand_desired_modality should define the golden modalities of the current mbeir_entry task.
+        query_prompt = self._get_random_query_prompt(query_dataset_id, query_modality, candidate_modality)
+        query_txt_with_prompt = format_string(f"{query_prompt} {query_txt}")
+        query_txt_without_prompt = format_string(query_txt)
+
+        def _prepare_data_dict(txt, img_path):
+            img = self._load_and_preprocess_image(img_path)
+            return {"txt": txt, "img": img}
+
+        query = _prepare_data_dict(
+            (query_txt_with_prompt if self.enable_query_instruct else query_txt_without_prompt),
+            query_img_path,
+        )
+        instance = {"query": query}
+
+        if self.returns.get("hashed_qid"):
+            instance.update({"qid": hash_qid(qid)})
+        if self.returns.get("task_id"):
+            instance.update({"task_id": get_mbeir_task_id(query_modality, candidate_modality)})
+
+        return instance
+
+
 class MBEIRCandidatePoolDataset(MBEIRDatasetBase):
     def __init__(
         self,
@@ -442,6 +516,49 @@ class MBEIRMainCollator(MBEIRCollatorBase):
                 processed_batch.update({"p_did_list": torch.tensor(p_did_list)})
 
         # TODO: Fix this hack for BLIP tokenizer.
+        if hasattr(processed_batch["txt_batched"], "input_ids"):
+            bs = processed_batch["txt_batched"]["input_ids"].size(0)
+        else:
+            bs = len(processed_batch["txt_batched"])
+        assert bs == processed_batch["image_batched"].size(0)
+        assert bs == processed_batch["txt_mask_batched"].size(0)
+        assert bs == processed_batch["image_mask_batched"].size(0)
+        return processed_batch
+
+
+class MBEIRInferenceOnlyCollator(MBEIRCollatorBase):
+    def __init__(self, tokenizer: Callable[[List[str]], Any], image_size: tuple):
+        super().__init__(tokenizer, image_size)
+
+    def __call__(self, batch):
+        txt_list, txt_mask_list, img_list, img_mask_list = [], [], [], []
+        qid_list, task_id_list = [], []
+        for instance in batch:
+            query = instance["query"]
+            txt = query["txt"]
+            img = query["img"]
+            padded_txt, txt_mask = self._get_padded_text_with_mask(txt)
+            padded_img, img_mask = self._get_padded_image_with_mask(img)
+            txt_list.append(padded_txt)
+            img_list.append(padded_img)
+            txt_mask_list.append(txt_mask)
+            img_mask_list.append(img_mask)
+            qid = instance.pop("qid", None)
+            if qid is not None:
+                qid_list.append(qid)
+            task_id = instance.pop("task_id", None)
+            if task_id is not None:
+                task_id_list.append(task_id)
+
+        processed_batch = {
+            "txt_batched": self.tokenizer(txt_list),
+            "image_batched": torch.stack(img_list, dim=0),
+            "txt_mask_batched": torch.tensor(txt_mask_list, dtype=torch.long),
+            "image_mask_batched": torch.tensor(img_mask_list, dtype=torch.long),
+            "qid_list": qid_list,
+            "task_id_list": task_id_list,
+        }
+
         if hasattr(processed_batch["txt_batched"], "input_ids"):
             bs = processed_batch["txt_batched"]["input_ids"].size(0)
         else:
