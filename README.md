@@ -123,7 +123,7 @@ Then you can place the ```clip_sf_large.pth``` file in the following path:
 2. Modify the ```MBEIR_DATA_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the M-BEIR benchmark.
 3. Modify the ```SRC_DIR``` in the `run_eval_pipeline_inbatch.sh` to the directory where you store the codebase of the UniIR project(This repo).
 
-The default configuration will evaluate the UniIR CLIP_SF Large model on  both the M-BEIR (5.6M heterogeneous candidate pool) and the M-BEIR_local (homogeneous candidate pool) benchmarks.
+The default configuration will evaluate the UniIR CLIP_SF Large model on both the M-BEIR (5.6M heterogeneous candidate pool) and the M-BEIR_local (homogeneous candidate pool) benchmarks.
 ```UNION``` in the yaml files refers to the M-BEIR (5.6M heterogeneous candidate pool).
 You can follow the comments in the yaml files and modify the configurations to evaluate the model on the M-BEIR_local benchmark only.
 ```bash
@@ -144,6 +144,12 @@ The default configuration will evaluate the UniIR BLIP_FF Large model on both th
 ```bash
 bash run_eval_pipeline_inbatch.sh
 ```
+#### UniRAG evaluation
+UniRAG evaluation is very similar to the default evaluation with the following differences:
+- It stores jsonl files containing queries and their retrieved candidates under ```retrieval_results```. This is useful when retrieved results will be used in downstream applications like RAG.
+- When `retrieve_image_text_pairs` in `retrieval.yaml` is set to `True`, a complement candidate will be fetched for each candidate with `text` or `image` only modality. With this setting the candidate and its complement will always have `image, text` modality. Complement candidates are fetched by using the original candidates as queries (e.g.,_query<sub>text</sub>_ -> _candidate<sub>image</sub>_ ->  _complement candidate<sub>text</sub>_).
+- To run evaluations in UniRAG mode, follow the instructions provided above replacing `InBatch` and `inbatch` with `UniRAG` and `unirag`, respectively.
+
 #### You can train and evaluate the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
 
 ## Model Zoo

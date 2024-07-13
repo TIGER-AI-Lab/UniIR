@@ -21,24 +21,21 @@ import dist_utils
 from dist_utils import ContiguousDistributedSampler
 from mbeir_embedder import generate_embeds_and_ids_for_dataset_with_gather
 from utils import build_model_from_config, set_seed
-from data.preprocessing.utils import unhash_did
+from data.preprocessing.utils import unhash_did, DATASET_IDS, MBEIR_TASK
 
 
-class QueryModality(Enum):
+class Modality(Enum):
     TEXT = "text"
     IMAGE = "image"
+    IMAGE_TEXT = "image,text"
 
 
 class InteractiveRetriever:
-    def __init__(self, cand_index_path: str, candidates_path: str, config):
+    def __init__(self, cand_index_path: str, candidates_path: str, dataset_name, config):
         # Set up seed for reproducibility
         seed = config.seed + dist_utils.get_rank()
         set_seed(seed)
-
-        # MSCOCO's dataset id is hardcoded since the dataset id and query/candidate modalities determine the instruction part of the prompt.
-        # MSCOCO's dataset supports prompt instructions for both image->text and text->image query->candidate modalities.
-        self.dataset_id = 9
-
+        self.dataset_id = DATASET_IDS[dataset_name]
         # Setup query embedder
         model = build_model_from_config(config)
         model.eval()
@@ -72,20 +69,20 @@ class InteractiveRetriever:
                 assert c["did"] not in self.did_to_candidates, "dids must be unique"
                 self.did_to_candidates[c["did"]] = c
 
-    def add_queries(self, queries: list[tuple[str, str, str]]):
-        for query_modality, query_txt, query_img_path in queries:
-            if query_modality == QueryModality.TEXT.value:
-                task_id = 0
-                candidate_modality = QueryModality.IMAGE.value
+    def add_queries(self, queries: list[tuple[str, str, str, str]]):
+        for query_modality, query_txt, query_img_path, candidate_modality in queries:
+            if query_modality == Modality.TEXT.value:
                 assert query_txt, "Query with 'text' modality must have non-null 'query_txt'"
                 assert query_img_path is None, "Query with 'text' modality must have null 'query_img_path'"
-            elif query_modality == QueryModality.IMAGE.value:
-                task_id = 3
-                candidate_modality = QueryModality.TEXT.value
+            elif query_modality == Modality.IMAGE.value:
                 assert query_txt is None, "Query with 'image' modality must have null 'query_txt'"
                 assert query_img_path, "Query with 'image' modality must have non-null 'query_img_path'"
+            elif query_modality == Modality.IMAGE_TEXT.value:
+                assert query_txt, "Query with 'image' modality must have non-null 'query_txt'"
+                assert query_img_path, "Query with 'image' modality must have non-null 'query_img_path'"
             else:
-                raise ValueError("Only 'text' and 'image' query modalities are supported.")
+                raise ValueError("Only 'text', 'image' and 'image,text' query modalities are supported.")
+            task_id = MBEIR_TASK[" -> ".join([query_modality, candidate_modality])]
             self.queries.append(
                 {
                     # Hardcoded qid in format of dataset_id:query_num.

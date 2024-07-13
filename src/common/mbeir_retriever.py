@@ -265,7 +265,12 @@ def get_raw_retrieved_candidates(
         if complement_retriever:
             complement_modalities = {"text": "image", "image": "text"}
             complement_queries = [
-                (cand.get("modality"), cand.get("txt"), cand.get("img_path"))
+                (
+                    cand.get("modality"),
+                    cand.get("txt"),
+                    cand.get("img_path"),
+                    complement_modalities[cand.get("modality")],
+                )
                 for cand in retrieved_cands
                 if cand["modality"] in complement_modalities.keys()
             ]
@@ -448,8 +453,11 @@ def run_retrieval(config, query_embedder_config=None):
                 candidates_path = os.path.join(
                     mbeir_data_dir, candidate_dir_name, f"mbeir_{cand_pool_name}_{split}_cand_pool.jsonl"
                 )
+                # When retrieving complement candidates, we want to find the closest image to a candidate caption or vica versa to have image-text pairs.
+                # "MSCOCO" dataset supports both image->text and text->image queries.
+                dataset_name = "MSCOCO"
                 complement_retriever = (
-                    InteractiveRetriever(cand_index_path, candidates_path, query_embedder_config)
+                    InteractiveRetriever(cand_index_path, candidates_path, dataset_name, query_embedder_config)
                     if retrieval_config.retrieve_image_text_pairs
                     else None
                 )
