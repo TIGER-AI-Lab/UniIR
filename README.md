@@ -147,8 +147,8 @@ bash run_eval_pipeline_inbatch.sh
 #### UniRAG evaluation
 UniRAG evaluation is very similar to the default evaluation with the following differences:
 - It stores jsonl files containing queries and their retrieved candidates under ```retrieval_results```. This is useful when retrieved results will be used in downstream applications like RAG.
-- When `retrieve_image_text_pairs` in `retrieval.yaml` is set to `True`, a complement candidate will be fetched for each candidate with `text` or `image` only modality. With this setting the candidate and its complement will always have `image, text` modality. Complement candidates are fetched by using the original candidates as queries (e.g.,_query<sub>text</sub>_ -> _candidate<sub>image</sub>_ ->  _complement candidate<sub>text</sub>_).
-- To run evaluations in UniRAG mode, follow the instructions provided above replacing `InBatch` and `inbatch` with `UniRAG` and `unirag`, respectively.
+- When `retrieve_image_text_pairs` in `retrieval.yaml` is set to `True`, a complement candidate will be fetched for each candidate with `text` or `image` only modality. With this setting, the candidate and its complement will always have `image, text` modality. Complement candidates are fetched by using the original candidates as queries (e.g., _query<sub>text</sub>_ -> _candidate<sub>image</sub>_ ->  _complement candidate<sub>text</sub>_).
+- To run evaluations in UniRAG mode follow the instructions provided above replacing `InBatch` and `inbatch` with `UniRAG` and `unirag`, respectively.
 
 #### You can train and evaluate the UniIR CLIP_FF and BLIP_SF models by modifying the corresponding scripts.
 
