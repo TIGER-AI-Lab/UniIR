@@ -4,8 +4,10 @@ Utility functions for retrieval experiments on MBEIR.
 
 # Standard Library imports
 import os
+import random
 
 # Third-party imports
+import numpy as np
 import torch
 
 
@@ -149,3 +151,11 @@ def build_model_from_config(config):
         raise NotImplementedError(f"Model {model_name} is not implemented.")
         # Notes: Add other models here
     return model
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
