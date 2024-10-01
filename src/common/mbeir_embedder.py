@@ -19,7 +19,7 @@ import transformers
 
 import dist_utils
 from dist_utils import ContiguousDistributedSampler
-from utils import build_model_from_config
+from utils import build_model_from_config, set_seed
 from data.mbeir_dataset import (
     MBEIRMainDataset,
     MBEIRMainCollator,
@@ -459,14 +459,6 @@ def generate_embeds_for_config(model, img_preprocess_fn, tokenizer, config):
 
             if dist.is_initialized():
                 dist.barrier()  # Wait for rank 0 to finish saving the embeddings and ids.
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 def main(config):
